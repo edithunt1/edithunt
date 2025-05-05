@@ -21,7 +21,7 @@
         <a href="{{ url_for('portfolio_detail', portfolio_id=portfolio.id) }}" class="main-card portfolio-card" style="width:calc(50% - 24px);min-width:320px;max-width:480px;display:flex;align-items:center;gap:36px;background:#fff;border-radius:26px;box-shadow:0 8px 32px #e3eafc;padding:0 0 0 0;overflow:hidden;transition:box-shadow 0.2s;min-height:140px;text-decoration:none;">
             <div style="width:140px;height:140px;flex-shrink:0;background:#f8fbff;display:flex;align-items:center;justify-content:center;">
                 {% if portfolio.thumbnail %}
-                <img src="/static/uploads/{{ portfolio.thumbnail }}" alt="포트폴리오 썸네일" style="width:110px;height:110px;object-fit:cover;border-radius:18px;border:2px solid #42a5f5;box-shadow:0 2px 8px #e3eafc;">
+                <img src="/static/uploads/{{ portfolio.thumbnail }}" alt="포트폴리오 썸네일" style="width:110px;height:110px;object-fit:cover;border-radius:18px;border:2px solid #42a5f5;box-shadow:0 2px 8px #e3eafc;" onerror="this.onerror=null;this.src='/static/img/profile_sample.jpg';">
                 {% else %}
                 <img src="/static/img/profile_sample.jpg" alt="포트폴리오 썸네일" style="width:110px;height:110px;object-fit:cover;border-radius:18px;border:2px solid #42a5f5;box-shadow:0 2px 8px #e3eafc;">
                 {% endif %}
