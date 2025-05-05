@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}메시지함 - Edithunt{% endblock %}
+{% block content %}
+<div style="max-width:480px;margin:40px auto 0 auto;background:#fff;border-radius:18px;box-shadow:0 2px 16px #e3eafc;padding:0;display:flex;flex-direction:column;min-height:540px;">
+    <div style="padding:24px 28px 12px 28px;border-bottom:1.5px solid #e3eafc;">
+        <h2 style="font-size:1.25rem;font-weight:800;color:#4f8cff;margin:0;">메시지함</h2>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:24px 18px 12px 18px;display:flex;flex-direction:column;gap:10px;">
+        {% if users %}
+            {% for user in users %}
+                <a href="{{ url_for('messages_detail', user_id=user.id) }}" style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #f1f5fb;text-decoration:none;">
+                    <img src="{{ url_for('static', filename='img/profile_sample.jpg') }}" alt="프로필" style="width:36px;height:36px;border-radius:50%;border:2px solid #4f8cff;">
+                    <div>
+                        <div style="font-weight:700;color:#1976d2;">{{ user.email }}</div>
+                        {% if last_msgs[user.id] %}
+                        <div style="font-size:0.98rem;color:#888;">{{ last_msgs[user.id].content[:30] }}{% if last_msgs[user.id].content|length > 30 %}...{% endif %}</div>
+                        {% endif %}
+                    </div>
+                </a>
+            {% endfor %}
+        {% else %}
+            <div style="color:#888;text-align:center;">주고받은 메시지가 없습니다.</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

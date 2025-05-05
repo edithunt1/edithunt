@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block title %}프로필 수정 - Edithunt{% endblock %}
+{% block content %}
+<div style="max-width:420px;margin:40px auto 0 auto;background:#fff;border-radius:18px;box-shadow:0 2px 16px #e3eafc;padding:0;">
+    <form method="post" style="padding:32px 32px 28px 32px;">
+        <h2 style="font-size:1.3rem;font-weight:800;color:#4f8cff;margin-bottom:24px;text-align:center;">프로필 수정</h2>
+        <div style="margin-bottom:18px;">
+            <label for="email" style="font-weight:600;color:#1976d2;">이메일</label>
+            <input type="email" id="email" name="email" value="{{ user.email }}" required style="width:100%;padding:12px 14px;border-radius:8px;border:1.5px solid #4f8cff;margin-top:6px;">
+        </div>
+        <div style="margin-bottom:18px;">
+            <label for="password" style="font-weight:600;color:#1976d2;">새 비밀번호</label>
+            <input type="password" id="password" name="password" placeholder="변경 시에만 입력" style="width:100%;padding:12px 14px;border-radius:8px;border:1.5px solid #4f8cff;margin-top:6px;">
+        </div>
+        <div style="display:flex;gap:10px;justify-content:center;margin-top:28px;">
+            <button type="submit" class="cta-btn" style="background:#4f8cff;color:#fff;padding:10px 32px;border-radius:10px;font-weight:700;">저장</button>
+            <a href="{{ url_for('profile') }}" class="cta-btn cta-btn-outline" style="color:#4f8cff;border:2px solid #4f8cff;padding:10px 32px;border-radius:10px;font-weight:700;">취소</a>
+        </div>
+    </form>
+</div>
+{% endblock %} 

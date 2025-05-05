@@ -1,0 +1,9 @@
+<form method="post" action="{{ url_for('pay_confirm') }}">
+    <input type="hidden" name="project_id" value="{{ project.id }}">
+    <div style="margin-bottom:18px;">
+        <label style="font-weight:600;">결제 금액</label>
+        <div style="font-size:1.2rem;font-weight:700;color:#1976d2;">{{ project.price | int | string }} 원</div>
+    </div>
+    <!-- 결제 관련 입력/버튼 등 기존 코드 -->
+    <button type="submit" class="cta-btn" style="width:100%;background:#1976d2;color:#fff;font-size:1.1rem;padding:14px 0;border-radius:8px;font-weight:bold;">결제하기</button>
+</form> 

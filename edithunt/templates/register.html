@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block title %}회원가입 - EditHunt{% endblock %}
+{% block content %}
+<div style="max-width:420px;margin:40px auto 0 auto;">
+    <div style="display:flex;">
+        <div id="tab-client" class="tab-active" style="flex:1;text-align:center;padding:18px 0;background:#1976d2;color:#fff;font-weight:bold;border-radius:10px 0 0 0;cursor:pointer;">클라이언트 가입</div>
+        <div id="tab-freelancer" style="flex:1;text-align:center;padding:18px 0;background:#fff;color:#1976d2;font-weight:bold;border:2px solid #1976d2;border-left:none;border-radius:0 10px 0 0;cursor:pointer;">프리랜서 가입</div>
+    </div>
+    <div style="padding:32px 32px 24px 32px;border:2px solid #e3f0fc;border-radius:0 0 16px 16px;background:#fff;box-shadow:0 2px 8px rgba(25,118,210,0.06);">
+        <div style="color:#222;font-size:14px;margin-bottom:10px;">
+            <span style="color:#1976d2;">&#9432;</span> 만 14세 이상만 EditHunt 서비스를 이용하실 수 있습니다.
+        </div>
+        <form method="post">
+            <label for="email">이메일</label>
+            <input type="email" id="email" name="email" required style="width:100%;margin-bottom:16px;">
+            <label for="password">비밀번호</label>
+            <input type="password" id="password" name="password" required style="width:100%;margin-bottom:16px;">
+            <label for="password2">비밀번호 확인</label>
+            <input type="password" id="password2" name="password2" required style="width:100%;margin-bottom:16px;">
+            <div style="margin-bottom:28px;">
+                <label for="nickname" style="font-weight:700;font-size:1.13rem;color:#1976d2;">닉네임 <span style="color:#d32f2f;">*</span></label>
+                <input type="text" id="nickname" name="nickname" required maxlength="32" placeholder="닉네임을 입력하세요" style="width:100%;margin-top:10px;padding:14px 16px;border-radius:14px;border:1.5px solid #b0c7f7;font-size:1.13rem;background:#f8fbff;">
+                <div style="color:#8fa1c7;font-size:1.01rem;margin-top:8px;">닉네임은 중복될 수 없습니다.</div>
+            </div>
+            <input type="hidden" id="role" name="role" value="client">
+            <button type="submit" class="cta-btn" style="width:100%;background:#1976d2;color:#fff;font-size:1.1rem;padding:14px 0;border-radius:8px;font-weight:bold;">가입하기</button>
+        </form>
+        <div style="margin-top:1.5rem;text-align:center;">
+            <a href="{{ url_for('login') }}" style="color:#1976d2;">이미 계정이 있으신가요? 로그인</a>
+        </div>
+    </div>
+</div>
+<script>
+const tabClient = document.getElementById('tab-client');
+const tabFreelancer = document.getElementById('tab-freelancer');
+const roleInput = document.getElementById('role');
+function activateTab(tab) {
+    if(tab === 'client') {
+        tabClient.style.background = '#1976d2';
+        tabClient.style.color = '#fff';
+        tabFreelancer.style.background = '#fff';
+        tabFreelancer.style.color = '#1976d2';
+        tabFreelancer.style.border = '2px solid #1976d2';
+        tabClient.style.border = 'none';
+        roleInput.value = 'client';
+    } else {
+        tabFreelancer.style.background = '#1976d2';
+        tabFreelancer.style.color = '#fff';
+        tabClient.style.background = '#fff';
+        tabClient.style.color = '#1976d2';
+        tabClient.style.border = '2px solid #1976d2';
+        tabFreelancer.style.border = 'none';
+        roleInput.value = 'freelancer';
+    }
+}
+tabClient.addEventListener('click', function() { activateTab('client'); });
+tabFreelancer.addEventListener('click', function() { activateTab('freelancer'); });
+</script>
+{% endblock %} 

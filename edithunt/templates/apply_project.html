@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block title %}프로젝트 지원 - EditHunt{% endblock %}
+{% block content %}
+<h2 style="text-align:center;margin-bottom:32px;"><img src="{{ url_for('static', filename='img/edithunt_logo.png') }}" alt="Logo" style="height:48px;"></h2>
+<div class="main-card">
+    <form method="post">
+        <label for="message" style="font-weight:600;">제안 메시지</label>
+        <textarea id="message" name="message" required class="input-textarea"></textarea>
+        <button type="submit" class="cta-btn" style="width:100%;">지원하기</button>
+    </form>
+</div>
+{% endblock %} 

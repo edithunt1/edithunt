@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block title %}포트폴리오 결제 - Edithunt{% endblock %}
+{% block content %}
+<div style="max-width:500px;margin:40px auto 0 auto;">
+    <div style="padding:32px 32px 24px 32px;border:2px solid #e3f0fc;border-radius:16px;background:#fff;box-shadow:0 2px 8px rgba(25,118,210,0.06);">
+        <h2 style="text-align:center;font-size:2rem;font-weight:bold;margin-bottom:24px;color:#1976d2;">포트폴리오 결제</h2>
+        <p style="text-align:center;font-size:1.2rem;margin-bottom:24px;">결제 금액: <b>{{ amount }}원</b></p>
+        <form method="post">
+            <button type="submit" class="cta-btn" style="width:100%;background:#1976d2;color:#fff;font-size:1.1rem;padding:14px 0;border-radius:8px;font-weight:bold;">결제하기</button>
+        </form>
+    </div>
+</div>
+{% endblock %} 

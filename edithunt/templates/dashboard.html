@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}대시보드 - Edithunt{% endblock %}
+{% block content %}
+<h2 style="margin-top:40px;text-align:center;font-size:2.2rem;font-weight:800;color:#4f8cff;">나의 대시보드</h2>
+<div class="cta-section">
+    <div class="cta-btns">
+        <a href="{{ url_for('portfolio_register') }}" class="cta-btn cta-btn-outline" style="color:#4f8cff;border:2px solid #4f8cff;">포트폴리오 등록</a>
+    </div>
+</div>
+<div class="dashboard-container">
+    {% if projects %}
+        {% for project in projects %}
+        <div class="main-card project-card">
+            <div class="card-title">{{ project.title }}</div>
+            <div class="card-desc">{{ project.description[:60] }}{% if project.description|length > 60 %}...{% endif %}</div>
+            <div class="card-info">
+                <span>등록자 <b>{{ project.client_id }}</b></span>
+            </div>
+            <div class="card-actions">
+                <a href="{{ url_for('project_detail', project_id=project.id) }}" class="card-btn">상세보기</a>
+                <a href="{{ url_for('apply_project', project_id=project.id) }}" class="card-btn cta-btn-outline">지원하기</a>
+                {% if project.client_id != current_user.id %}
+                <a href="{{ url_for('messages_detail', user_id=project.client_id) }}" class="card-btn cta-btn-outline" style="color:#4f8cff;border:2px solid #4f8cff;">메시지 보내기</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div style="grid-column:1/-1;text-align:center;color:#888;font-size:1.1rem;">등록된 프로젝트가 없습니다.</div>
+    {% endif %}
+</div>
+{% endblock %} 
