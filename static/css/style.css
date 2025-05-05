@@ -325,6 +325,61 @@ input:focus, select:focus, textarea:focus {
         font-size: 0.98rem !important;
         padding: 1rem 0 !important;
     }
+    /* 카드/섹션 한 줄만 보이게 */
+    .main-cards, .dashboard-container, .portfolio-list {
+        flex-direction: column !important;
+        gap: 6px !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    .main-card, .portfolio-card, .project-card {
+        min-height: unset !important;
+        max-height: 70px !important;
+        padding: 8px 8px !important;
+        margin: 0 0 6px 0 !important;
+        border-radius: 8px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        box-shadow: none !important;
+        background: #fff !important;
+    }
+    .main-card img, .portfolio-card img, .portfolio-thumb {
+        width: 40px !important;
+        height: 40px !important;
+        min-width: 40px !important;
+        min-height: 40px !important;
+        max-width: 40px !important;
+        max-height: 40px !important;
+        margin-right: 10px !important;
+        border-radius: 6px !important;
+        object-fit: cover !important;
+    }
+    .main-card > *, .portfolio-card > * {
+        margin: 0 6px 0 0 !important;
+        padding: 0 !important;
+    }
+    .card-title, h1, h2 {
+        font-size: 1rem !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    .card-desc, .profile-desc, .card-info, .card-actions {
+        font-size: 0.95rem !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    /* 네비게이션 바도 한 줄씩만 */
+    header nav {
+        gap: 2px !important;
+        padding: 0 !important;
+    }
+    header nav a {
+        padding: 8px 0 !important;
+        font-size: 1rem !important;
+        border-radius: 8px !important;
+        margin: 0 !important;
+    }
 }
 body.darkmode {
     background: linear-gradient(135deg, #101c2c 0%, #182848 100%);
