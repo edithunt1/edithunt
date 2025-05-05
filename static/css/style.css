@@ -719,29 +719,64 @@ input:focus, select:focus, textarea:focus {
     font-size: 14px;
   }
   main, .main-content, .dashboard-container, .portfolio-list, .portfolio-card {
-    padding: 0 2px;
+    padding: 0 2px !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    background: #fff !important;
   }
-  .portfolio-card {
-    padding: 8px;
-    border-radius: 8px;
+  .portfolio-card, .main-card, .project-card {
+    box-shadow: none !important;
+    border-radius: 8px !important;
+    border: 1px solid #eee !important;
+    margin-bottom: 12px !important;
+    padding: 10px 6px !important;
+    gap: 8px !important;
   }
-  .portfolio-card img, .portfolio-thumb {
-    max-width: 100%;
-    border-radius: 6px;
-  }
-  button, .btn, .card-btn, .cta-btn {
-    font-size: 1em;
-    padding: 10px 0;
-  }
-  header h1 a, .logo {
-    font-size: 1.3rem;
+  .portfolio-card img, .portfolio-thumb, .main-card img {
+    max-width: 100% !important;
+    max-height: 180px !important;
+    object-fit: cover !important;
+    border-radius: 6px !important;
+    margin: 0 auto 8px auto !important;
+    display: block !important;
   }
   .card-title, h1, h2 {
-    font-size: 1.1rem;
+    font-size: 1.08rem !important;
+    margin-bottom: 0.4rem !important;
+    margin-top: 0.2rem !important;
+  }
+  .card-desc, .profile-desc, .card-info, .card-actions {
+    font-size: 0.98rem !important;
+    margin-bottom: 0.2rem !important;
+  }
+  .profile-img {
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 50% !important;
+    margin-right: 8px !important;
+  }
+  .profile {
+    gap: 0.5rem !important;
+    align-items: center !important;
+  }
+  .card-actions, .cta-btns {
+    flex-direction: column !important;
+    gap: 6px !important;
+    margin-top: 0.5rem !important;
+  }
+  .flash, .flash-messages {
+    font-size: 0.95rem !important;
+    padding: 0.5rem 0.7rem !important;
+    margin-bottom: 0.5rem !important;
   }
   .search-bar, .tag-filter {
-    font-size: 1em;
-    margin-bottom: 8px;
+    font-size: 1em !important;
+    margin-bottom: 6px !important;
+    padding: 0.5em !important;
+  }
+  /* 불필요한 요소 숨기기 예시 */
+  .card-extra, .portfolio-tags, .card-footer {
+    display: none !important;
   }
 }
 
