@@ -668,4 +668,79 @@ input:focus, select:focus, textarea:focus {
 @media (max-width: 900px) {
   .cta-main-row { flex-direction: column; gap: 1.2rem; align-items: center; }
   .cta-card { max-width: 98vw; }
+}
+
+/* === Edithunt 모바일/태블릿 반응형 개선 === */
+@media (max-width: 900px) {
+  body {
+    font-size: 15px;
+  }
+  main, .main-content, .dashboard-container, .portfolio-list, .portfolio-card {
+    padding: 0 6px;
+    max-width: 100vw;
+  }
+  header, nav, .navbar {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 10px 0;
+  }
+  .portfolio-list {
+    flex-direction: column;
+    gap: 16px;
+  }
+  .portfolio-card {
+    width: 100%;
+    min-width: 0;
+    padding: 12px;
+    border-radius: 12px;
+    align-items: center;
+  }
+  .portfolio-card img, .portfolio-thumb {
+    max-width: 320px;
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+  }
+  .search-bar, .tag-filter {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+  button, .btn, .card-btn, .cta-btn {
+    width: 100%;
+    font-size: 1.1em;
+    padding: 12px 0;
+    margin: 8px 0;
+    border-radius: 8px;
+  }
+}
+
+@media (max-width: 600px) {
+  body {
+    font-size: 14px;
+  }
+  main, .main-content, .dashboard-container, .portfolio-list, .portfolio-card {
+    padding: 0 2px;
+  }
+  .portfolio-card {
+    padding: 8px;
+    border-radius: 8px;
+  }
+  .portfolio-card img, .portfolio-thumb {
+    max-width: 100%;
+    border-radius: 6px;
+  }
+  button, .btn, .card-btn, .cta-btn {
+    font-size: 1em;
+    padding: 10px 0;
+  }
+  header h1 a, .logo {
+    font-size: 1.3rem;
+  }
+  .card-title, h1, h2 {
+    font-size: 1.1rem;
+  }
+  .search-bar, .tag-filter {
+    font-size: 1em;
+    margin-bottom: 8px;
+  }
 } 
