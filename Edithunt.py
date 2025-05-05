@@ -182,14 +182,22 @@ def portfolio_list():
     user_ids = list(set([p.freelancer_id for p in portfolios]))
     users = User.query.filter(User.id.in_(user_ids)).all()
     users_dict = {u.id: u for u in users}
-    return render_template('portfolio_list.html', portfolios=portfolios, users_dict=users_dict)
+    payments = set()
+    if current_user.is_authenticated:
+        payments = set([pay.description.split(':')[-1].strip() for pay in Payment.query.filter_by(user_id=current_user.id).all() if pay.description and '포트폴리오 결제:' in pay.description])
+        payments = set([int(pid) for pid in payments if pid.isdigit()])
+    return render_template('portfolio_list.html', portfolios=portfolios, users_dict=users_dict, payments=payments)
 
 @app.route('/portfolio/<int:portfolio_id>')
 def portfolio_detail(portfolio_id):
     portfolio = Portfolio.query.get_or_404(portfolio_id)
     freelancer = User.query.get(portfolio.freelancer_id)
     file_list = portfolio.files.split(',') if portfolio.files else []
-    return render_template('portfolio_detail.html', portfolio=portfolio, freelancer=freelancer, file_list=file_list)
+    payments = set()
+    if current_user.is_authenticated:
+        payments = set([pay.description.split(':')[-1].strip() for pay in Payment.query.filter_by(user_id=current_user.id).all() if pay.description and '포트폴리오 결제:' in pay.description])
+        payments = set([int(pid) for pid in payments if pid.isdigit()])
+    return render_template('portfolio_detail.html', portfolio=portfolio, freelancer=freelancer, file_list=file_list, payments=payments)
 
 @app.route('/admin')
 @login_required
