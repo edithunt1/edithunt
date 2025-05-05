@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}내 프로필 - Edithunt{% endblock %}
+{% block content %}
+<div style="max-width:600px;margin:40px auto 0 auto;background:#fff;border-radius:18px;box-shadow:0 2px 16px #e3eafc;padding:0;">
+    <div style="padding:32px 32px 18px 32px;border-bottom:1.5px solid #e3eafc;text-align:center;">
+        <img src="{{ url_for('static', filename='img/profile_sample.jpg') }}" alt="프로필" style="width:80px;height:80px;border-radius:50%;border:3px solid #4f8cff;margin-bottom:12px;">
+        <h2 style="font-size:1.5rem;font-weight:800;color:#4f8cff;margin:0;">{{ current_user.email }}</h2>
+        <div style="font-size:1.05rem;color:#888;margin-top:4px;">역할: {{ current_user.role|capitalize }}</div>
+    </div>
+    <div style="padding:28px 32px 32px 32px;">
+        {% if current_user.role == 'client' %}
+            <h3 style="font-size:1.1rem;font-weight:700;color:#1976d2;margin-bottom:10px;">내 프로젝트</h3>
+            {% if my_projects %}
+                <ul style="padding-left:18px;">
+                {% for project in my_projects %}
+                    <li style="margin-bottom:8px;"><b>{{ project.title }}</b> <span style="color:#888;">{{ project.description[:30] }}{% if project.description|length > 30 %}...{% endif %}</span></li>
+                {% endfor %}
+                </ul>
+            {% else %}
+                <div style="color:#aaa;">등록한 프로젝트가 없습니다.</div>
+            {% endif %}
+        {% elif current_user.role == 'freelancer' %}
+            <h3 style="font-size:1.1rem;font-weight:700;color:#1976d2;margin-bottom:10px;">내 포트폴리오</h3>
+            {% if my_portfolio %}
+                <div style="background:#f8fafd;border-radius:12px;padding:18px 16px;margin-bottom:10px;">{{ my_portfolio.content|safe }}</div>
+            {% else %}
+                <div style="color:#aaa;">등록한 포트폴리오가 없습니다.</div>
+            {% endif %}
+        {% endif %}
+        <div style="margin-top:24px;text-align:center;display:flex;gap:12px;justify-content:center;">
+            <a href="{{ url_for('dashboard') }}" class="cta-btn" style="background:#4f8cff;color:#fff;padding:10px 32px;border-radius:10px;font-weight:700;">대시보드로</a>
+            <a href="{{ url_for('profile_edit') }}" class="cta-btn cta-btn-outline" style="color:#4f8cff;border:2px solid #4f8cff;padding:10px 32px;border-radius:10px;font-weight:700;">프로필 수정</a>
+        </div>
+    </div>
+</div>
+{% endblock %} 

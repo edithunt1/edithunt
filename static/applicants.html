@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block title %}지원자 목록 - EditHunt{% endblock %}
+{% block content %}
+<h2>지원자 목록</h2>
+<form method="post">
+    <div style="display:flex; flex-wrap:wrap; gap:1rem;">
+    {% for applicant in applicants %}
+        <div style="border:1px solid #90caf9; border-radius:8px; padding:1rem; min-width:220px; background:#f4f8fb;">
+            <div><b>지원자 ID:</b> {{ applicant.freelancer_id }}</div>
+            <div style="margin:0.5rem 0;"><b>메시지:</b> {{ applicant.message }}</div>
+            <button type="submit" name="selected_id" value="{{ applicant.id }}" class="btn" style="width:100%;margin-top:0.5rem;">이 지원자 선택</button>
+        </div>
+    {% endfor %}
+    </div>
+</form>
+{% endblock %} 

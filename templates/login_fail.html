@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block title %}로그인 실패 - EditHunt{% endblock %}
+{% block content %}
+<div style="max-width:420px;margin:80px auto 0 auto;">
+    <div style="padding:48px 36px 36px 36px;background:#fff;border-radius:28px;box-shadow:0 8px 32px #e3eafc;border:1.5px solid #e3f0fc;text-align:center;">
+        <div style="font-size:3.5rem;line-height:1;margin-bottom:18px;">😢</div>
+        <h2 style="font-size:2rem;font-weight:900;color:#d32f2f;margin-bottom:16px;letter-spacing:-1px;">로그인에 실패했어요</h2>
+        <div style="color:#6a7ba2;font-size:1.13rem;margin-bottom:32px;">이메일 또는 비밀번호가 올바르지 않습니다.<br>다시 한 번 확인해 주세요.</div>
+        <a href="{{ url_for('login') }}" class="cta-btn" style="display:inline-block;width:100%;background:linear-gradient(90deg,#1976d2 0%,#42a5f5 100%);color:#fff;font-size:1.18rem;padding:16px 0;border-radius:14px;font-weight:900;box-shadow:0 4px 16px #e3eafc;letter-spacing:0.5px;text-decoration:none;">다시 로그인하기</a>
+    </div>
+</div>
+{% endblock %} 

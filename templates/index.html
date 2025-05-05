@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}Edithunt - 프리랜서 포트폴리오 등록 플랫폼{% endblock %}
+{% block content %}
+<header>
+    <nav style="display:flex;align-items:center;justify-content:space-between;max-width:1200px;margin:0 auto;padding:18px 32px 10px 32px;">
+        <a href="{{ url_for('index') }}"><img src="{{ url_for('static', filename='img/edithunt_logo.png') }}" alt="Logo" height="48" style="border-radius:14px;box-shadow:0 2px 8px #e3eafc;"></a>
+        <ul style="list-style:none;display:flex;gap:28px;margin:0;padding:0;">
+            <li><a href="{{ url_for('portfolio_list') }}" style="font-size:1.18rem;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px;display:inline-block;vertical-align:middle;">포트폴리오</a></li>
+            {% if current_user.is_authenticated %}
+                <li><a href="{{ url_for('dashboard') }}" style="font-size:1.18rem;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px;display:inline-block;vertical-align:middle;">내 대시보드</a></li>
+                <li><a href="{{ url_for('profile') }}" style="font-size:1.18rem;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px;display:inline-block;vertical-align:middle;">내 프로필</a></li>
+                <li><a href="{{ url_for('logout') }}" style="font-size:1.18rem;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px;display:inline-block;vertical-align:middle;">로그아웃</a></li>
+            {% else %}
+                <li><a href="{{ url_for('login') }}" style="font-size:1.18rem;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px;display:inline-block;vertical-align:middle;">로그인</a></li>
+                <li><a href="{{ url_for('register') }}" style="font-size:1.18rem;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px;display:inline-block;vertical-align:middle;">회원가입</a></li>
+            {% endif %}
+        </ul>
+        {% if current_user.is_authenticated %}
+            <a href="{{ url_for('messages_list') }}" style="font-size:1.18rem;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px;display:inline-block;vertical-align:middle;"><i class="fa-solid fa-envelope"></i> 메시지함</a>
+        {% endif %}
+    </nav>
+</header>
+<section class="hero-section" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:420px;background:linear-gradient(120deg,#f8fbff 60%,#fff 100%);border-radius:32px;box-shadow:0 8px 32px #e3eafc;margin:48px auto 40px auto;max-width:1100px;padding:80px 32px 64px 32px;text-align:center;">
+    <img src="{{ url_for('static', filename='img/main_hero_image.png') }}" alt="메인 대표 이미지" style="width:100%;max-width:none;height:auto;margin-bottom:40px;border-radius:32px;box-shadow:0 4px 16px #e3eafc;">
+    <div style="display:flex;gap:22px;justify-content:center;flex-wrap:wrap;">
+        <a href="{{ url_for('portfolio_register') }}" class="cta-btn" style="background:linear-gradient(90deg,#1976d2 0%,#42a5f5 100%);color:#fff;padding:18px 44px;border-radius:16px;font-size:1.18rem;font-weight:900;box-shadow:0 2px 8px #e3eafc;">포트폴리오 등록</a>
+        <a href="{{ url_for('portfolio_list') }}" class="cta-btn cta-btn-outline" style="color:#1976d2;border:2px solid #1976d2;padding:18px 44px;border-radius:16px;font-size:1.18rem;font-weight:900;">포트폴리오 둘러보기</a>
+    </div>
+</section>
+<section class="features-section" style="max-width:1100px;margin:0 auto 56px auto;display:flex;gap:2.7rem;flex-wrap:wrap;justify-content:center;">
+    <div class="feature-card" style="background:#fff;border-radius:20px;box-shadow:0 4px 18px #e3eafc;padding:44px 32px;text-align:center;width:250px;transition:box-shadow 0.2s;">
+        <img src="https://cdn-icons-png.flaticon.com/512/190/190411.png" alt="실시간 메시지" width="58" style="margin-bottom:18px;">
+        <h3 style="font-size:1.18rem;font-weight:800;color:#1976d2;margin-bottom:12px;">실시간 메시지</h3>
+        <p style="color:#6a7ba2;font-size:1.09rem;">포트폴리오 등록자와 실시간으로 소통하세요.</p>
+    </div>
+    <div class="feature-card" style="background:#fff;border-radius:20px;box-shadow:0 4px 18px #e3eafc;padding:44px 32px;text-align:center;width:250px;transition:box-shadow 0.2s;">
+        <img src="https://cdn-icons-png.flaticon.com/512/190/190422.png" alt="포트폴리오 열람" width="58" style="margin-bottom:18px;">
+        <h3 style="font-size:1.18rem;font-weight:800;color:#1976d2;margin-bottom:12px;">포트폴리오 열람</h3>
+        <p style="color:#6a7ba2;font-size:1.09rem;">다양한 프리랜서의 포트폴리오를 확인할 수 있습니다.</p>
+    </div>
+</section>
+<footer style="background:#222;color:#fff;text-align:center;padding:24px 0;margin-top:48px;border-radius:0 0 32px 32px;font-size:1.08rem;">
+    <img src="{{ url_for('static', filename='img/edithunt_logo.png') }}" alt="Logo" style="height:32px;vertical-align:middle;">
+</footer>
+{% endblock %} 

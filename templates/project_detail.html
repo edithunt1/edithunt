@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block title %}프로젝트 상세 - EditHunt{% endblock %}
+{% block content %}
+<h2 style="text-align:center;margin-bottom:32px;"><img src="{{ url_for('static', filename='img/edithunt_logo.png') }}" alt="Logo" style="height:48px;"></h2>
+<div class="main-card project-card">
+    <div class="card-title">{{ project.title }}</div>
+    <div class="card-desc">{{ project.description }}</div>
+    <div class="card-info">
+        <span>등록자 <b>{{ project.client_id }}</b></span>
+        {% if project.status %}<span>상태 <b>{{ project.status }}</b></span>{% endif %}
+    </div>
+    <div class="card-actions">
+        <a href="{{ url_for('apply_project', project_id=project.id) }}" class="card-btn">지원하기</a>
+        <a href="{{ url_for('select_applicant', project_id=project.id) }}" class="card-btn cta-btn-outline">지원자 보기</a>
+    </div>
+</div>
+{% endblock %} 
