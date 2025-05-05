@@ -33,9 +33,11 @@
             <div style="color:#222;font-size:1.08rem;line-height:1.7;">{{ portfolio.content|safe }}</div>
         </div>
         {% if current_user.is_authenticated and current_user.id != portfolio.freelancer_id %}
+            {% if not (payments and portfolio.id in payments) %}
             <form method="POST" action="{{ url_for('pay_portfolio_detail', portfolio_id=portfolio.id) }}">
                 <button type="submit" class="cta-btn" style="width:100%;margin-top:24px;">구매하기</button>
             </form>
+            {% endif %}
             {% if payments and portfolio.id in payments %}
             <div style="margin-top:18px;text-align:center;">
                 <a href="{{ url_for('messages_detail', user_id=portfolio.freelancer_id) }}" class="cta-btn cta-btn-outline" style="width:100%;">메시지 보내기</a>
