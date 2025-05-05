@@ -259,12 +259,72 @@ input:focus, select:focus, textarea:focus {
     h1, h2 { font-size: 1.5rem; }
 }
 @media (max-width: 600px) {
-    .hero-section { padding: 1.2rem 0.5rem; font-size: 1rem; }
-    .main-cards, .dashboard-container { grid-template-columns: 1fr; gap: 1rem; }
-    .main-card, .project-card, .portfolio-card { padding: 1rem 0.5rem; }
-    .cta-section { padding: 1rem 0.5rem; }
-    h1, h2 { font-size: 1.1rem; }
-    .card-btn, .cta-btn { font-size: 1rem; padding: 0.7rem 1rem; }
+    .hero-section {
+        padding: 1.2rem 0.5rem !important;
+        font-size: 1rem !important;
+    }
+    .main-cards, .dashboard-container, .portfolio-grid {
+        flex-direction: column !important;
+        gap: 1rem !important;
+        display: flex !important;
+    }
+    .main-card, .project-card, .portfolio-card {
+        padding: 1rem 0.5rem !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        border-radius: 16px !important;
+    }
+    .feature-card {
+        width: 100% !important;
+        margin-bottom: 1.2rem !important;
+        border-radius: 16px !important;
+    }
+    .cta-btn, .card-btn {
+        font-size: 1rem !important;
+        padding: 0.7rem 1rem !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        border-radius: 12px !important;
+    }
+    .hero-section img, .portfolio-card img, .main-card img {
+        max-width: 100% !important;
+        height: auto !important;
+        border-radius: 16px !important;
+    }
+    header, nav, .nav-main, .nav-left {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 0.5rem !important;
+        padding: 0.7rem 0.5rem !important;
+    }
+    h1, h2, .card-title {
+        font-size: 1.2rem !important;
+    }
+    input, select, textarea {
+        font-size: 1rem !important;
+        padding: 0.7rem !important;
+        border-radius: 10px !important;
+    }
+    .portfolio-grid > a {
+        min-width: 0 !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        flex-direction: column !important;
+        gap: 18px !important;
+        align-items: stretch !important;
+        padding: 0.5rem !important;
+    }
+    .profile-name, .profile-desc {
+        font-size: 1rem !important;
+    }
+    .flash, .flash-messages {
+        font-size: 0.98rem !important;
+        padding: 0.7rem 1rem !important;
+    }
+    footer {
+        font-size: 0.98rem !important;
+        padding: 1rem 0 !important;
+    }
 }
 body.darkmode {
     background: linear-gradient(135deg, #101c2c 0%, #182848 100%);

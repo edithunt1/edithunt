@@ -389,8 +389,20 @@ def pay_portfolio_detail(portfolio_id):
         payment = Payment(user_id=current_user.id, amount=amount, description=f'포트폴리오 결제: {portfolio.id}')
         db.session.add(payment)
         db.session.commit()
-        flash('포트폴리오 결제가 완료되었습니다!', 'success')
-        return redirect(url_for('pay_portfolio_success', portfolio_id=portfolio.id))
+        # 결제 성공 시, 구매자와 프리랜서 간 메시지방(최초 메시지) 자동 생성
+        freelancer_id = portfolio.freelancer_id
+        buyer_id = current_user.id
+        # 이미 메시지 내역이 없으면 최초 메시지 생성
+        existing = Message.query.filter(
+            ((Message.sender_id == buyer_id) & (Message.receiver_id == freelancer_id)) |
+            ((Message.sender_id == freelancer_id) & (Message.receiver_id == buyer_id))
+        ).first()
+        if not existing:
+            msg = Message(sender_id=buyer_id, receiver_id=freelancer_id, content='포트폴리오 구매 후 자동 생성된 대화방입니다.')
+            db.session.add(msg)
+            db.session.commit()
+        flash('포트폴리오 결제가 완료되었습니다! 프리랜서와 바로 대화할 수 있습니다.', 'success')
+        return redirect(url_for('messages_detail', user_id=freelancer_id))
     return render_template('pay_portfolio_detail.html', portfolio=portfolio, amount=amount)
 
 @app.route('/pay/portfolio/success/<int:portfolio_id>')
