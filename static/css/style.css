@@ -942,4 +942,149 @@ header nav {
         padding: 14px 12px !important;
         background: none !important;
     }
+}
+
+@media (max-width: 600px) {
+  /* 모든 주요 컨테이너를 세로로 */
+  body, main, header, nav, section, article, .main-cards, .dashboard-container, .portfolio-list, .portfolio-card, .main-card, .project-card, .card-menu, .dashboard-menu, .portfolio-menu {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+    box-sizing: border-box !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    gap: 0 !important;
+  }
+  /* 모든 메뉴/카드/섹션 내부의 a, button, li를 한 줄씩 */
+  nav a, .card-menu a, .dashboard-menu a, .portfolio-menu a, .main-card a, .portfolio-card a, .project-card a, section a, ul li, ol li, nav button, .main-card button, .portfolio-card button, .project-card button {
+    display: block !important;
+    width: 100% !important;
+    text-align: left !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    border-bottom: 1px solid #1976d222 !important;
+    font-size: 1.1rem !important;
+    padding: 14px 12px !important;
+    background: none !important;
+    box-sizing: border-box !important;
+    overflow-wrap: break-word !important;
+  }
+  /* 카드/섹션의 이미지도 작게 */
+  img, .portfolio-thumb, .main-card img, .portfolio-card img {
+    max-width: 48px !important;
+    max-height: 48px !important;
+    min-width: 32px !important;
+    min-height: 32px !important;
+    border-radius: 8px !important;
+    object-fit: cover !important;
+    margin: 0 0 8px 0 !important;
+    display: block !important;
+  }
+  /* 불필요한 그림자, 테두리, 여백 제거 */
+  .main-card, .portfolio-card, .project-card, .dashboard-container, .portfolio-list {
+    box-shadow: none !important;
+    border: none !important;
+    background: #fff !important;
+    padding: 0 !important;
+    margin: 0 0 8px 0 !important;
+  }
+  /* 플로팅/고정 요소도 해제 */
+  [style*="float"], [style*="position:fixed"], [style*="position:absolute"] {
+    float: none !important;
+    position: static !important;
+    left: auto !important;
+    right: auto !important;
+    top: auto !important;
+    bottom: auto !important;
+  }
+}
+
+/* === Edithunt 모바일 하단 고정 네비게이션(탭바) === */
+@media (max-width: 600px) {
+  .mobile-bottom-nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: #fff;
+    border-top: 1px solid #eee;
+    display: flex;
+    justify-content: space-around;
+    z-index: 1000;
+    height: 54px;
+    box-shadow: 0 -2px 8px rgba(33,150,243,0.07);
+  }
+  .mobile-bottom-nav a {
+    flex: 1;
+    text-align: center;
+    padding: 8px 0 4px 0;
+    font-size: 1.1rem;
+    color: #1976d2;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+  }
+  .mobile-bottom-nav a.active, .mobile-bottom-nav a:active {
+    color: #1565c0;
+    font-weight: 700;
+  }
+  body { padding-bottom: 54px !important; }
+
+  /* 버튼/입력폼 터치 최적화 */
+  button, .btn, input[type="submit"], .card-btn, .cta-btn {
+    min-height: 48px !important;
+    font-size: 1.15rem !important;
+    border-radius: 10px !important;
+    padding: 12px 0 !important;
+    width: 100%;
+    margin-bottom: 8px;
+  }
+  input, select, textarea {
+    min-height: 44px !important;
+    font-size: 1.08rem !important;
+    border-radius: 10px !important;
+    padding: 10px 12px !important;
+  }
+
+  /* 불필요한 요소 숨기기 */
+  .desktop-only, .long-desc, .side-info, .footer-logo, .extra-info, .card-extra, .portfolio-tags, .card-footer {
+    display: none !important;
+  }
+
+  /* 로딩 스피너/피드백 */
+  .loading-spinner {
+    border: 4px solid #e3f2fd;
+    border-top: 4px solid #1976d2;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    animation: spin 1s linear infinite;
+    margin: 32px auto;
+    display: block;
+  }
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  /* PWA용 기본 스타일 */
+  .add-to-home {
+    position: fixed;
+    bottom: 64px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1976d2;
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 24px;
+    font-size: 1.08rem;
+    box-shadow: 0 2px 8px rgba(33,150,243,0.13);
+    z-index: 1200;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
 } 
