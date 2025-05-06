@@ -168,12 +168,11 @@ def logout():
 @login_required
 def dashboard():
     payments = Payment.query.filter_by(user_id=current_user.id).order_by(Payment.timestamp.desc()).all()
-    my_portfolio = Portfolio.query.filter_by(freelancer_id=current_user.id).first()
-    # 내 통계 데이터
+    my_portfolios = Portfolio.query.filter_by(freelancer_id=current_user.id).all()
     my_payments_count = len(payments)
     my_payments_total = sum([p.amount for p in payments])
-    my_portfolio_count = Portfolio.query.filter_by(freelancer_id=current_user.id).count()
-    return render_template('dashboard.html', payments=payments, my_portfolio=my_portfolio,
+    my_portfolio_count = len(my_portfolios)
+    return render_template('dashboard.html', payments=payments, my_portfolios=my_portfolios,
         my_payments_count=my_payments_count, my_payments_total=my_payments_total, my_portfolio_count=my_portfolio_count)
 
 @app.route('/messages')

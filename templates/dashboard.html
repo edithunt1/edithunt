@@ -30,25 +30,18 @@
     </div>
 </div>
 <div class="dashboard-container">
-    {% if projects %}
-        {% for project in projects %}
+    {% if my_portfolios %}
+        {% for portfolio in my_portfolios %}
         <div class="main-card project-card">
-            <div class="card-title">{{ project.title }}</div>
-            <div class="card-desc">{{ project.description[:60] }}{% if project.description|length > 60 %}...{% endif %}</div>
-            <div class="card-info">
-                <span>등록자 <b>{{ project.client_id }}</b></span>
-            </div>
+            <div class="card-title">{{ portfolio.category }} | {{ portfolio.price }}원</div>
+            <div class="card-desc">{{ portfolio.content[:60] }}{% if portfolio.content|length > 60 %}...{% endif %}</div>
             <div class="card-actions">
-                <a href="{{ url_for('project_detail', project_id=project.id) }}" class="card-btn">상세보기</a>
-                <a href="{{ url_for('apply_project', project_id=project.id) }}" class="card-btn cta-btn-outline">지원하기</a>
-                {% if project.client_id != current_user.id %}
-                <a href="{{ url_for('messages_detail', user_id=project.client_id) }}" class="card-btn cta-btn-outline" style="color:#4f8cff;border:2px solid #4f8cff;">메시지 보내기</a>
-                {% endif %}
+                <a href="{{ url_for('portfolio_detail', portfolio_id=portfolio.id) }}" class="card-btn">상세보기</a>
             </div>
         </div>
         {% endfor %}
     {% else %}
-        <div style="grid-column:1/-1;text-align:center;color:#888;font-size:1.1rem;">등록된 프로젝트가 없습니다.</div>
+        <div style="grid-column:1/-1;text-align:center;color:#888;font-size:1.1rem;">등록된 포트폴리오가 없습니다.</div>
     {% endif %}
 </div>
 {% endblock %} 
