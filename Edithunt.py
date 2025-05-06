@@ -438,6 +438,8 @@ def format_number(value):
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
+        from sqlalchemy import text
+        db.engine.execute(text('ALTER TABLE portfolio ADD COLUMN tags VARCHAR(255);'))
     print('Flask Edithunt 서버를 시작합니다!')
     port = int(os.environ.get('PORT', 10000))
     app.run(host='0.0.0.0', port=port, debug=True) 
