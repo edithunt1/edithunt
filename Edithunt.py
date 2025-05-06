@@ -622,6 +622,18 @@ def sitemap_xml():
     xml += '</urlset>'
     return Response(xml, mimetype='application/xml')
 
+@app.route('/portfolio/delete/<int:portfolio_id>', methods=['POST'])
+@login_required
+def portfolio_delete(portfolio_id):
+    portfolio = Portfolio.query.get_or_404(portfolio_id)
+    if portfolio.freelancer_id != current_user.id and not current_user.is_admin:
+        flash('본인 소유의 포트폴리오만 삭제할 수 있습니다.', 'danger')
+        return redirect(url_for('dashboard'))
+    db.session.delete(portfolio)
+    db.session.commit()
+    flash('포트폴리오가 삭제되었습니다.', 'success')
+    return redirect(url_for('dashboard'))
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()

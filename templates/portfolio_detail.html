@@ -71,6 +71,11 @@
             </ul>
         </div>
         <a href="{{ url_for('portfolio_list') }}" style="display:inline-block;padding:10px 24px;background:#4f8cff;color:#fff;border-radius:8px;font-weight:600;text-decoration:none;width:100%;text-align:center;">목록으로</a>
+        {% if current_user.is_authenticated and (current_user.id == portfolio.freelancer_id or current_user.is_admin) %}
+        <form method="POST" action="{{ url_for('portfolio_delete', portfolio_id=portfolio.id) }}" style="margin-top:18px;">
+            <button type="submit" class="cta-btn cta-btn-outline" style="width:100%;background:#fff;color:#d32f2f;border:2px solid #d32f2f;" onclick="return confirm('정말 이 포트폴리오를 삭제하시겠습니까? 삭제 후 복구할 수 없습니다.');">포트폴리오 삭제</button>
+        </form>
+        {% endif %}
     </div>
 </div>
 {% endblock %} 
