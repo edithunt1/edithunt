@@ -32,6 +32,13 @@
             <h2 style="font-size:1.4rem;font-weight:900;color:#1976d2;margin-bottom:12px;">상세 설명</h2>
             <div style="color:#222;font-size:1.08rem;line-height:1.7;">{{ portfolio.content|safe }}</div>
         </div>
+        {% if portfolio.tags %}
+        <div class="portfolio-tags" style="margin-bottom:18px;">
+          {% for tag in portfolio.tags.split(',') %}
+            <span class="tag" style="display:inline-block;background:#f0f0f0;color:#1976d2;border-radius:12px;padding:2px 10px;margin-right:5px;font-size:1em;">#{{ tag.strip() }}</span>
+          {% endfor %}
+        </div>
+        {% endif %}
         {% if current_user.is_authenticated and current_user.id != portfolio.freelancer_id %}
             {% if not (payments and portfolio.id in payments) %}
             <form method="POST" action="{{ url_for('pay_portfolio_detail', portfolio_id=portfolio.id) }}">

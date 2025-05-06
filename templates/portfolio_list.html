@@ -35,6 +35,13 @@
                 <div style="display:flex;gap:18px;align-items:center;">
                     <!-- 메시지 보내기 버튼 제거 -->
                 </div>
+                {% if portfolio.tags %}
+                <div class="portfolio-tags" style="margin-top:8px;">
+                  {% for tag in portfolio.tags.split(',') %}
+                    <span class="tag" style="display:inline-block;background:#f0f0f0;color:#1976d2;border-radius:12px;padding:2px 10px;margin-right:5px;font-size:0.95em;">#{{ tag.strip() }}</span>
+                  {% endfor %}
+                </div>
+                {% endif %}
             </div>
         </a>
         {% endfor %}

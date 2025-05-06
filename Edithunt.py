@@ -7,7 +7,6 @@ from werkzeug.utils import secure_filename
 from flask_socketio import SocketIO, emit
 import requests
 import base64
-from datetime import datetime
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret'
@@ -53,6 +52,7 @@ class Portfolio(db.Model):
     category = db.Column(db.String(64))  # 카테고리
     thumbnail = db.Column(db.String(256))  # 썸네일 파일 경로
     files = db.Column(db.Text)  # 첨부파일 목록(여러 개, 콤마로 구분)
+    tags = db.Column(db.String(255))  # 쉼표로 구분된 태그 문자열
 
 class Payment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -60,14 +60,6 @@ class Payment(db.Model):
     amount = db.Column(db.Integer)
     timestamp = db.Column(db.DateTime, server_default=db.func.now())
     description = db.Column(db.String(200))
-
-class Review(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    portfolio_id = db.Column(db.Integer, db.ForeignKey('portfolio.id'))
-    reviewer_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    rating = db.Column(db.Integer)  # 1~5
-    comment = db.Column(db.Text)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -159,6 +151,7 @@ def portfolio_register():
         category = request.form.get('category', '').strip()
         files = request.files.getlist('file')  # 여러 첨부파일
         thumbnail_file = request.files.get('thumbnail')  # 썸네일 파일
+        tags = request.form.get('tags', '')
         filenames = []
         thumbnail_filename = None
         for file in files:
@@ -169,7 +162,7 @@ def portfolio_register():
         if thumbnail_file and allowed_file(thumbnail_file.filename):
             thumbnail_filename = secure_filename(thumbnail_file.filename)
             thumbnail_file.save(os.path.join(app.config['UPLOAD_FOLDER'], thumbnail_filename))
-        portfolio = Portfolio(content=content, freelancer_id=current_user.id, price=price, category=category, thumbnail=thumbnail_filename, files=','.join(filenames))
+        portfolio = Portfolio(content=content, freelancer_id=current_user.id, price=price, category=category, thumbnail=thumbnail_filename, files=','.join(filenames), tags=tags)
         db.session.add(portfolio)
         db.session.commit()
         flash('포트폴리오가 등록되었습니다!', 'success')
@@ -184,7 +177,8 @@ def portfolio_list():
         user_ids = [u.id for u in User.query.filter(User.email.contains(query)).all()]
         portfolios = portfolios.filter(
             (Portfolio.content.contains(query)) |
-            (Portfolio.freelancer_id.in_(user_ids))
+            (Portfolio.freelancer_id.in_(user_ids)) |
+            (Portfolio.tags.contains(query))
         )
     portfolios = portfolios.all()
     # 프리랜서 id -> User 객체 dict
@@ -202,36 +196,11 @@ def portfolio_detail(portfolio_id):
     portfolio = Portfolio.query.get_or_404(portfolio_id)
     freelancer = User.query.get(portfolio.freelancer_id)
     file_list = portfolio.files.split(',') if portfolio.files else []
-    reviews = Review.query.filter_by(portfolio_id=portfolio_id).order_by(Review.created_at.desc()).all()
-    can_review = False
+    payments = set()
     if current_user.is_authenticated:
-        payments = Payment.query.filter_by(user_id=current_user.id).all()
-        for pay in payments:
-            if pay.description and f'포트폴리오 결제:{portfolio_id}' in pay.description:
-                already = Review.query.filter_by(portfolio_id=portfolio_id, reviewer_id=current_user.id).first()
-                if not already:
-                    can_review = True
-    return render_template('portfolio_detail.html', portfolio=portfolio, freelancer=freelancer, file_list=file_list, reviews=reviews, can_review=can_review)
-
-@app.route('/portfolio/<int:portfolio_id>/review', methods=['POST'])
-@login_required
-def write_review(portfolio_id):
-    payments = Payment.query.filter_by(user_id=current_user.id).all()
-    is_buyer = any(pay.description and f'포트폴리오 결제:{portfolio_id}' in pay.description for pay in payments)
-    if not is_buyer:
-        flash('구매자만 리뷰를 작성할 수 있습니다.', 'danger')
-        return redirect(url_for('portfolio_detail', portfolio_id=portfolio_id))
-    rating = int(request.form['rating'])
-    comment = request.form['comment'].strip()
-    existing = Review.query.filter_by(portfolio_id=portfolio_id, reviewer_id=current_user.id).first()
-    if existing:
-        flash('이미 리뷰를 작성하셨습니다.', 'danger')
-    else:
-        review = Review(portfolio_id=portfolio_id, reviewer_id=current_user.id, rating=rating, comment=comment)
-        db.session.add(review)
-        db.session.commit()
-        flash('리뷰가 등록되었습니다!', 'success')
-    return redirect(url_for('portfolio_detail', portfolio_id=portfolio_id))
+        payments = set([pay.description.split(':')[-1].strip() for pay in Payment.query.filter_by(user_id=current_user.id).all() if pay.description and '포트폴리오 결제:' in pay.description])
+        payments = set([int(pid) for pid in payments if pid.isdigit()])
+    return render_template('portfolio_detail.html', portfolio=portfolio, freelancer=freelancer, file_list=file_list, payments=payments)
 
 @app.route('/admin')
 @login_required
