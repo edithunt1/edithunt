@@ -439,7 +439,11 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
         from sqlalchemy import text
-        db.engine.execute(text('ALTER TABLE portfolio ADD COLUMN tags VARCHAR(255);'))
+        try:
+            db.engine.execute(text('ALTER TABLE portfolio ADD COLUMN tags VARCHAR(255);'))
+            print("tags 컬럼이 추가되었습니다.")
+        except Exception as e:
+            print("tags 컬럼 추가 실패(이미 존재할 수 있음):", e)
     print('Flask Edithunt 서버를 시작합니다!')
     port = int(os.environ.get('PORT', 10000))
     app.run(host='0.0.0.0', port=port, debug=True) 
