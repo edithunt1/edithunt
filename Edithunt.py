@@ -1,7 +1,7 @@
 from flask import Flask, render_template, redirect, url_for, request, session, flash, jsonify, Response
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user, UserMixin
-from sqlalchemy import or_
+from sqlalchemy import or_, inspect
 import os
 from werkzeug.utils import secure_filename
 from flask_socketio import SocketIO, emit, join_room
@@ -625,67 +625,18 @@ def sitemap_xml():
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-        from sqlalchemy import text
-        try:
-            db.session.execute(text('ALTER TABLE user ADD COLUMN is_verified BOOLEAN DEFAULT 0'))
-            db.session.commit()
-            print("is_verified 컬럼이 추가되었습니다.")
-        except Exception as e:
-            print("is_verified 컬럼 추가 실패(이미 존재할 수 있음):", e)
-        try:
-            db.session.execute(text('ALTER TABLE user ADD COLUMN verify_token VARCHAR(128)'))
-            db.session.commit()
-            print("verify_token 컬럼이 추가되었습니다.")
-        except Exception as e:
-            print("verify_token 컬럼 추가 실패(이미 존재할 수 있음):", e)
-        try:
-            db.session.execute(text('ALTER TABLE user ADD COLUMN reset_token VARCHAR(128)'))
-            db.session.commit()
-            print("reset_token 컬럼이 추가되었습니다.")
-        except Exception as e:
-            print("reset_token 컬럼 추가 실패(이미 존재할 수 있음):", e)
-        try:
-            db.session.execute(text('ALTER TABLE user ADD COLUMN is_admin BOOLEAN DEFAULT 0'))
-            db.session.commit()
-            print("is_admin 컬럼이 추가되었습니다.")
-        except Exception as e:
-            print("is_admin 컬럼 추가 실패(이미 존재할 수 있음):", e)
-        # --- Notification 테이블 생성/마이그레이션 ---
-        try:
-            db.session.execute(text('SELECT 1 FROM notification LIMIT 1'))
-            print("Notification 테이블이 이미 존재합니다.")
-        except Exception as e:
+        inspector = inspect(db.engine)
+        columns = [col['name'] for col in inspector.get_columns('portfolio')]
+        if 'tags' not in columns:
             try:
-                db.session.execute(text('''
-                    CREATE TABLE notification (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        user_id INTEGER NOT NULL,
-                        type VARCHAR(32) NOT NULL,
-                        message VARCHAR(256) NOT NULL,
-                        is_read BOOLEAN DEFAULT 0,
-                        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-                        FOREIGN KEY(user_id) REFERENCES user(id)
-                    )
-                '''))
+                db.session.execute(text('ALTER TABLE portfolio ADD COLUMN tags VARCHAR(255)'))
                 db.session.commit()
-                print("Notification 테이블이 생성되었습니다.")
-            except Exception as e2:
-                print("Notification 테이블 생성 실패:", e2)
-        # --- FAQ 테이블 생성/마이그레이션 ---
-        try:
-            db.session.execute(text('''
-                CREATE TABLE IF NOT EXISTS faq (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    question VARCHAR(256) NOT NULL,
-                    answer TEXT NOT NULL,
-                    "order" INTEGER DEFAULT 0,
-                    is_active BOOLEAN DEFAULT 1
-                )
-            '''))
-            db.session.commit()
-            print("FAQ 테이블이 생성(또는 이미 존재)합니다.")
-        except Exception as e:
-            print("FAQ 테이블 생성 실패:", e)
+                print("tags 컬럼이 추가되었습니다.")
+            except Exception as e:
+                print("tags 컬럼 추가 실패:", e)
+        else:
+            print("tags 컬럼이 이미 존재합니다.")
+        # ... (다른 컬럼/테이블도 위 방식으로 점검)
     print('Flask Edithunt 서버를 시작합니다!')
     port = int(os.environ.get('PORT', 10000))
     app.run(host='0.0.0.0', port=port, debug=True) 
