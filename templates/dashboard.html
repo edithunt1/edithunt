@@ -2,6 +2,28 @@
 {% block title %}대시보드 - Edithunt{% endblock %}
 {% block content %}
 <h2 style="margin-top:40px;text-align:center;font-size:2.2rem;font-weight:800;color:#4f8cff;">나의 대시보드</h2>
+<div style="display:flex;gap:32px;max-width:700px;margin:32px auto 36px auto;">
+  <div class="stat-card">
+    <div class="stat-label">내 결제 건수</div>
+    <div class="stat-value">{{ my_payments_count }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">내 결제 총액</div>
+    <div class="stat-value">{{ my_payments_total|format_number }}원</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">내 포트폴리오 수</div>
+    <div class="stat-value">{{ my_portfolio_count }}</div>
+  </div>
+</div>
+<style>
+.stat-card {
+  background:#f7faff;border-radius:14px;padding:28px 36px;flex:1;box-shadow:0 2px 12px #e3eafc;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+}
+.stat-label {color:#8fa1c7;font-size:1.08em;margin-bottom:8px;}
+.stat-value {font-size:2.1em;font-weight:800;color:#1976d2;}
+</style>
 <div class="cta-section">
     <div class="cta-btns">
         <a href="{{ url_for('portfolio_register') }}" class="cta-btn cta-btn-outline" style="color:#4f8cff;border:2px solid #4f8cff;">포트폴리오 등록</a>

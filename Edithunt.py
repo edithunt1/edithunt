@@ -1,12 +1,17 @@
-from flask import Flask, render_template, redirect, url_for, request, session, flash, jsonify
+from flask import Flask, render_template, redirect, url_for, request, session, flash, jsonify, Response
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user, UserMixin
 from sqlalchemy import or_
 import os
 from werkzeug.utils import secure_filename
-from flask_socketio import SocketIO, emit
+from flask_socketio import SocketIO, emit, join_room
 import requests
 import base64
+import secrets
+from flask_mail import Message as MailMessage, Mail
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask_wtf import CSRFProtect
+from sqlalchemy import text
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret'
@@ -20,6 +25,8 @@ app.config['MAIL_DEFAULT_SENDER'] = ''
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 socketio = SocketIO(app)
+mail = Mail(app)
+csrf = CSRFProtect(app)
 
 UPLOAD_FOLDER = 'static/uploads'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'pdf', 'mp4', 'mov'}
@@ -35,6 +42,10 @@ class User(db.Model, UserMixin):
     password = db.Column(db.String(128), nullable=False)
     role = db.Column(db.String(20), nullable=False, default='freelancer')
     nickname = db.Column(db.String(32), unique=True, nullable=False)  # 닉네임(중복 불가)
+    is_verified = db.Column(db.Boolean, default=False)  # 이메일 인증 여부
+    verify_token = db.Column(db.String(128), nullable=True)  # 이메일 인증 토큰
+    reset_token = db.Column(db.String(128), nullable=True)  # 비밀번호 재설정 토큰
+    is_admin = db.Column(db.Boolean, default=False)  # 관리자 여부
 
 class Message(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -61,6 +72,21 @@ class Payment(db.Model):
     timestamp = db.Column(db.DateTime, server_default=db.func.now())
     description = db.Column(db.String(200))
 
+class Notification(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)  # 알림 대상
+    type = db.Column(db.String(32), nullable=False)  # 알림 종류 (message, payment 등)
+    message = db.Column(db.String(256), nullable=False)  # 알림 내용
+    is_read = db.Column(db.Boolean, default=False)  # 읽음 여부
+    timestamp = db.Column(db.DateTime, server_default=db.func.now())  # 생성 시각
+
+class FAQ(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    question = db.Column(db.String(256), nullable=False)
+    answer = db.Column(db.Text, nullable=False)
+    order = db.Column(db.Integer, default=0)
+    is_active = db.Column(db.Boolean, default=True)
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
@@ -69,6 +95,16 @@ def load_user(user_id):
 @app.route('/')
 def index():
     return render_template('index.html')
+
+def send_verification_email(user_email, token):
+    # 실제 서비스에서는 Flask-Mail 등으로 메일 발송
+    # 여기서는 print로 대체
+    verify_url = url_for('verify_email', token=token, _external=True)
+    print(f"[이메일 인증] {user_email} → 인증 링크: {verify_url}")
+    # 실제 메일 발송 예시:
+    # msg = MailMessage('EditHunt 이메일 인증', recipients=[user_email])
+    # msg.body = f'아래 링크를 클릭해 이메일 인증을 완료하세요:\n{verify_url}'
+    # mail.send(msg)
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -83,20 +119,39 @@ def register():
         if User.query.filter_by(nickname=nickname).first():
             flash('이미 존재하는 닉네임입니다.', 'danger')
             return redirect(url_for('register'))
-        user = User(email=email, password=password, role=role, nickname=nickname)
+        verify_token = secrets.token_urlsafe(32)
+        hashed_pw = generate_password_hash(password)
+        user = User(email=email, password=hashed_pw, role=role, nickname=nickname, is_verified=False, verify_token=verify_token)
         db.session.add(user)
         db.session.commit()
-        flash('회원가입이 완료되었습니다. 로그인 해주세요.', 'success')
+        send_verification_email(email, verify_token)
+        flash('회원가입이 완료되었습니다. 이메일 인증을 완료해 주세요.', 'success')
         return redirect(url_for('login'))
     return render_template('register.html')
+
+@app.route('/verify/<token>')
+def verify_email(token):
+    user = User.query.filter_by(verify_token=token).first()
+    if user:
+        user.is_verified = True
+        user.verify_token = None
+        db.session.commit()
+        flash('이메일 인증이 완료되었습니다! 이제 로그인할 수 있습니다.', 'success')
+        return redirect(url_for('login'))
+    else:
+        flash('유효하지 않은 인증 링크입니다.', 'danger')
+        return redirect(url_for('login'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
-        user = User.query.filter_by(email=email, password=password).first()
-        if user:
+        user = User.query.filter_by(email=email).first()
+        if user and check_password_hash(user.password, password):
+            if not user.is_verified:
+                flash('이메일 인증이 필요합니다. 메일함을 확인해 주세요.', 'danger')
+                return render_template('login.html')
             login_user(user)
             return redirect(url_for('dashboard'))
         flash('이메일 또는 비밀번호를 확인해 주세요.', 'danger')
@@ -114,7 +169,12 @@ def logout():
 def dashboard():
     payments = Payment.query.filter_by(user_id=current_user.id).order_by(Payment.timestamp.desc()).all()
     my_portfolio = Portfolio.query.filter_by(freelancer_id=current_user.id).first()
-    return render_template('dashboard.html', payments=payments, my_portfolio=my_portfolio)
+    # 내 통계 데이터
+    my_payments_count = len(payments)
+    my_payments_total = sum([p.amount for p in payments])
+    my_portfolio_count = Portfolio.query.filter_by(freelancer_id=current_user.id).count()
+    return render_template('dashboard.html', payments=payments, my_portfolio=my_portfolio,
+        my_payments_count=my_payments_count, my_payments_total=my_payments_total, my_portfolio_count=my_portfolio_count)
 
 @app.route('/messages')
 @login_required
@@ -205,10 +265,32 @@ def portfolio_detail(portfolio_id):
 @app.route('/admin')
 @login_required
 def admin():
+    if not current_user.is_admin:
+        flash('관리자만 접근 가능합니다.', 'danger')
+        return redirect(url_for('index'))
     users = User.query.all()
     portfolios = Portfolio.query.all()
     payments = Payment.query.all()
-    return render_template('admin.html', users=users, portfolios=portfolios, payments=payments)
+    # 통계 데이터 계산
+    from datetime import datetime, timedelta
+    total_users = len(users)
+    total_portfolios = len(portfolios)
+    total_payments = len(payments)
+    total_amount = sum([p.amount for p in payments])
+    # 최근 7일 결제 추이
+    today = datetime.utcnow().date()
+    last7 = [(today - timedelta(days=i)) for i in range(6, -1, -1)]
+    payments_by_day = {d:0 for d in last7}
+    for p in payments:
+        if p.timestamp:
+            d = p.timestamp.date()
+            if d in payments_by_day:
+                payments_by_day[d] += p.amount
+    payments_chart_labels = [d.strftime('%m-%d') for d in last7]
+    payments_chart_data = [payments_by_day[d] for d in last7]
+    return render_template('admin.html', users=users, portfolios=portfolios, payments=payments,
+        total_users=total_users, total_portfolios=total_portfolios, total_payments=total_payments, total_amount=total_amount,
+        payments_chart_labels=payments_chart_labels, payments_chart_data=payments_chart_data)
 
 @app.route('/profile')
 @login_required
@@ -278,7 +360,7 @@ def profile_edit():
         if email:
             current_user.email = email
         if password:
-            current_user.password = password
+            current_user.password = generate_password_hash(password)
         db.session.commit()
         flash('프로필이 수정되었습니다.', 'success')
         return redirect(url_for('profile'))
@@ -291,6 +373,12 @@ def allowed_file(filename):
 def handle_send_message(data):
     emit('receive_message', data, room=data['receiver_id'])
 
+@socketio.on('join')
+def on_join(data):
+    user_id = data.get('user_id')
+    if user_id:
+        join_room(str(user_id))
+
 @app.route('/messages/<int:user_id>', methods=['GET', 'POST'])
 @login_required
 def messages_detail(user_id):
@@ -299,6 +387,17 @@ def messages_detail(user_id):
         msg = Message(sender_id=current_user.id, receiver_id=user_id, content=content)
         db.session.add(msg)
         db.session.commit()
+        # 메시지 수신자에게 알림 생성
+        notif = Notification(user_id=user_id, type='message', message=f'{current_user.nickname}님이 새 메시지를 보냈습니다.', is_read=False)
+        db.session.add(notif)
+        db.session.commit()
+        # 실시간 알림 전송
+        socketio.emit('send_notification', {
+            'type': 'message',
+            'message': notif.message,
+            'timestamp': notif.timestamp.isoformat(),
+            'notif_id': notif.id
+        }, room=str(user_id))
         return redirect(url_for('messages_detail', user_id=user_id))
     msgs = Message.query.filter(
         or_(
@@ -388,6 +487,17 @@ def api_send_message():
     msg = Message(sender_id=current_user.id, receiver_id=receiver_id, content=content)
     db.session.add(msg)
     db.session.commit()
+    # 메시지 수신자에게 알림 생성
+    notif = Notification(user_id=receiver_id, type='message', message=f'{current_user.nickname}님이 새 메시지를 보냈습니다.', is_read=False)
+    db.session.add(notif)
+    db.session.commit()
+    # 실시간 알림 전송
+    socketio.emit('send_notification', {
+        'type': 'message',
+        'message': notif.message,
+        'timestamp': notif.timestamp.isoformat(),
+        'notif_id': notif.id
+    }, room=str(receiver_id))
     return jsonify({'message': 'Message sent', 'id': msg.id})
 
 @app.route('/pay/portfolio/<int:portfolio_id>', methods=['GET', 'POST'])
@@ -435,16 +545,147 @@ def format_number(value):
     except (ValueError, TypeError):
         return value
 
+@app.route('/reset_password', methods=['GET', 'POST'])
+def reset_password_request():
+    if request.method == 'POST':
+        email = request.form['email']
+        user = User.query.filter_by(email=email).first()
+        if user:
+            import secrets
+            reset_token = secrets.token_urlsafe(32)
+            user.reset_token = reset_token
+            db.session.commit()
+            reset_url = url_for('reset_password', token=reset_token, _external=True)
+            print(f"[비밀번호 재설정] {email} → 링크: {reset_url}")
+            # 실제 메일 발송 예시:
+            # msg = MailMessage('EditHunt 비밀번호 재설정', recipients=[email])
+            # msg.body = f'아래 링크를 클릭해 비밀번호를 재설정하세요:\n{reset_url}'
+            # mail.send(msg)
+            flash('비밀번호 재설정 링크가 이메일로 발송되었습니다.', 'success')
+            return redirect(url_for('login'))
+        else:
+            flash('해당 이메일로 가입된 계정이 없습니다.', 'danger')
+    return render_template('reset_password_request.html')
+
+@app.route('/reset_password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    user = User.query.filter_by(reset_token=token).first()
+    if not user:
+        flash('유효하지 않은 비밀번호 재설정 링크입니다.', 'danger')
+        return redirect(url_for('login'))
+    if request.method == 'POST':
+        new_password = request.form['password']
+        user.password = generate_password_hash(new_password)
+        user.reset_token = None
+        db.session.commit()
+        flash('비밀번호가 성공적으로 변경되었습니다! 로그인해 주세요.', 'success')
+        return redirect(url_for('login'))
+    return render_template('reset_password.html', token=token)
+
+@app.route('/notifications/read/<int:notif_id>', methods=['POST'])
+@login_required
+def notification_read(notif_id):
+    notif = Notification.query.filter_by(id=notif_id, user_id=current_user.id).first()
+    if notif:
+        notif.is_read = True
+        db.session.commit()
+        return jsonify({'success': True})
+    return jsonify({'success': False, 'error': 'Not found'}), 404
+
+@app.route('/faq')
+def faq_list():
+    faqs = FAQ.query.filter_by(is_active=True).order_by(FAQ.order.asc(), FAQ.id.asc()).all()
+    return render_template('faq.html', faqs=faqs)
+
+@app.route('/robots.txt')
+def robots_txt():
+    content = 'User-agent: *\nAllow: /\nSitemap: ' + url_for('sitemap_xml', _external=True)
+    return Response(content, mimetype='text/plain')
+
+@app.route('/sitemap.xml')
+def sitemap_xml():
+    from datetime import datetime
+    pages = [
+        url_for('index', _external=True),
+        url_for('portfolio_list', _external=True),
+        url_for('faq_list', _external=True),
+        url_for('login', _external=True),
+        url_for('register', _external=True),
+    ]
+    # 포트폴리오 상세
+    for p in Portfolio.query.all():
+        pages.append(url_for('portfolio_detail', portfolio_id=p.id, _external=True))
+    xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
+    xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+    for page in pages:
+        xml += f'  <url><loc>{page}</loc><lastmod>{datetime.utcnow().date()}</lastmod></url>\n'
+    xml += '</urlset>'
+    return Response(xml, mimetype='application/xml')
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
         from sqlalchemy import text
         try:
-            db.session.execute(text('ALTER TABLE portfolio ADD COLUMN tags VARCHAR(255);'))
+            db.session.execute(text('ALTER TABLE user ADD COLUMN is_verified BOOLEAN DEFAULT 0'))
             db.session.commit()
-            print("tags 컬럼이 추가되었습니다.")
+            print("is_verified 컬럼이 추가되었습니다.")
         except Exception as e:
-            print("tags 컬럼 추가 실패(이미 존재할 수 있음):", e)
+            print("is_verified 컬럼 추가 실패(이미 존재할 수 있음):", e)
+        try:
+            db.session.execute(text('ALTER TABLE user ADD COLUMN verify_token VARCHAR(128)'))
+            db.session.commit()
+            print("verify_token 컬럼이 추가되었습니다.")
+        except Exception as e:
+            print("verify_token 컬럼 추가 실패(이미 존재할 수 있음):", e)
+        try:
+            db.session.execute(text('ALTER TABLE user ADD COLUMN reset_token VARCHAR(128)'))
+            db.session.commit()
+            print("reset_token 컬럼이 추가되었습니다.")
+        except Exception as e:
+            print("reset_token 컬럼 추가 실패(이미 존재할 수 있음):", e)
+        try:
+            db.session.execute(text('ALTER TABLE user ADD COLUMN is_admin BOOLEAN DEFAULT 0'))
+            db.session.commit()
+            print("is_admin 컬럼이 추가되었습니다.")
+        except Exception as e:
+            print("is_admin 컬럼 추가 실패(이미 존재할 수 있음):", e)
+        # --- Notification 테이블 생성/마이그레이션 ---
+        try:
+            db.session.execute(text('SELECT 1 FROM notification LIMIT 1'))
+            print("Notification 테이블이 이미 존재합니다.")
+        except Exception as e:
+            try:
+                db.session.execute(text('''
+                    CREATE TABLE notification (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        user_id INTEGER NOT NULL,
+                        type VARCHAR(32) NOT NULL,
+                        message VARCHAR(256) NOT NULL,
+                        is_read BOOLEAN DEFAULT 0,
+                        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        FOREIGN KEY(user_id) REFERENCES user(id)
+                    )
+                '''))
+                db.session.commit()
+                print("Notification 테이블이 생성되었습니다.")
+            except Exception as e2:
+                print("Notification 테이블 생성 실패:", e2)
+        # --- FAQ 테이블 생성/마이그레이션 ---
+        try:
+            db.session.execute(text('''
+                CREATE TABLE IF NOT EXISTS faq (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    question VARCHAR(256) NOT NULL,
+                    answer TEXT NOT NULL,
+                    "order" INTEGER DEFAULT 0,
+                    is_active BOOLEAN DEFAULT 1
+                )
+            '''))
+            db.session.commit()
+            print("FAQ 테이블이 생성(또는 이미 존재)합니다.")
+        except Exception as e:
+            print("FAQ 테이블 생성 실패:", e)
     print('Flask Edithunt 서버를 시작합니다!')
     port = int(os.environ.get('PORT', 10000))
     app.run(host='0.0.0.0', port=port, debug=True) 

@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}자주 묻는 질문(FAQ) - EditHunt{% endblock %}
+{% block content %}
+<div style="max-width:700px;margin:48px auto 0 auto;">
+  <h2 style="font-size:2em;font-weight:800;margin-bottom:32px;color:#1976d2;text-align:center;">자주 묻는 질문 <span style="font-size:0.7em;color:#8fa1c7;">FAQ</span></h2>
+  <div class="faq-list">
+    {% for faq in faqs %}
+    <div class="faq-item">
+      <div class="faq-q">Q. {{ faq.question }}</div>
+      <div class="faq-a">A. {{ faq.answer|safe }}</div>
+    </div>
+    {% endfor %}
+    {% if not faqs %}
+      <div style="text-align:center;color:#888;font-size:1.1em;">등록된 FAQ가 없습니다.</div>
+    {% endif %}
+  </div>
+</div>
+<style>
+.faq-list {margin-top:18px;}
+.faq-item {background:#f7faff;border-radius:12px;margin-bottom:18px;padding:0 0;box-shadow:0 2px 12px #e3eafc;overflow:hidden;}
+.faq-q {padding:22px 28px;font-weight:700;font-size:1.13em;color:#1976d2;cursor:pointer;transition:background 0.2s;}
+.faq-a {padding:0 28px 22px 28px;display:none;color:#333;font-size:1.08em;}
+.faq-item.active .faq-a {display:block;}
+.faq-item.active .faq-q {background:#e3f0fc;}
+</style>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.faq-q').forEach(function(q) {
+    q.addEventListener('click', function() {
+      var item = q.parentElement;
+      item.classList.toggle('active');
+    });
+  });
+});
+</script>
+{% endblock %} 
