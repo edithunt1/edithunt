@@ -709,26 +709,23 @@ def pay_portfolio_complete():
 
 if __name__ == '__main__':
     with app.app_context():
+        # Drop all tables and recreate them
+        db.drop_all()
         db.create_all()
-        inspector = inspect(db.engine)
-        columns = [col['name'] for col in inspector.get_columns('user')]
         
-        # 필요한 컬럼들 추가
-        missing_columns = {
-            'is_verified': 'BOOLEAN DEFAULT FALSE',
-            'verify_token': 'VARCHAR(128)',
-            'reset_token': 'VARCHAR(128)',
-            'is_admin': 'BOOLEAN DEFAULT FALSE'
-        }
-        
-        for col_name, col_type in missing_columns.items():
-            if col_name not in columns:
-                try:
-                    db.session.execute(text(f'ALTER TABLE user ADD COLUMN {col_name} {col_type}'))
-                    db.session.commit()
-                    print(f"{col_name} 컬럼이 추가되었습니다.")
-                except Exception as e:
-                    print(f"{col_name} 컬럼 추가 실패:", e)
+        # Create an admin user if none exists
+        admin = User.query.filter_by(email='admin@example.com').first()
+        if not admin:
+            admin = User(
+                email='admin@example.com',
+                password=generate_password_hash('admin123'),
+                role='admin',
+                nickname='Admin',
+                is_verified=True,
+                is_admin=True
+            )
+            db.session.add(admin)
+            db.session.commit()
         
         print('Flask Edithunt 서버를 시작합니다!')
         port = int(os.environ.get('PORT', 10000))
