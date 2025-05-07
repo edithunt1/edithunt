@@ -2,216 +2,304 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>{% block title %}EditHunt{% endblock %}</title>
-    {% block meta %}
-    <meta name="description" content="프리랜서 포트폴리오 마켓 Edithunt - 믿을 수 있는 전문가와 프로젝트를 연결합니다.">
-    <meta property="og:title" content="{% block og_title %}EditHunt - 프리랜서 포트폴리오 마켓{% endblock %}">
-    <meta property="og:description" content="프리랜서와 클라이언트를 위한 안전하고 신뢰할 수 있는 포트폴리오 거래 플랫폼.">
-    <meta property="og:image" content="{{ url_for('static', filename='img/edithunt_og.png', _external=True) }}">
-    <meta property="og:url" content="{{ request.url }}">
-    <meta name="twitter:card" content="summary_large_image">
-    {% endblock %}
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <title>{% block title %}Edithunt{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* 네비게이션 바 커스텀 스타일 제거 - 원래대로 */
+        :root {
+            --primary-color: #4a90e2;
+            --secondary-color: #f8f9fa;
+            --accent-color: #ff6b6b;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+        
+        .navbar {
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            color: var(--primary-color) !important;
+        }
+        
+        .nav-link {
+            color: #495057 !important;
+            font-weight: 500;
+            padding: 0.5rem 1rem !important;
+            transition: color 0.3s ease;
+        }
+        
+        .nav-link:hover {
+            color: var(--primary-color) !important;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .btn {
+            border-radius: 5px;
+            padding: 0.5rem 1.5rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-primary:hover {
+            background-color: #357abd;
+            border-color: #357abd;
+            transform: translateY(-1px);
+        }
+        
+        .btn-outline-primary {
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-outline-primary:hover {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .form-control {
+            border-radius: 5px;
+            border: 1px solid #dee2e6;
+            padding: 0.75rem 1rem;
+        }
+        
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(74, 144, 226, 0.25);
+        }
+        
+        .alert {
+            border-radius: 10px;
+            border: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .footer {
+            background-color: white;
+            padding: 2rem 0;
+            margin-top: 3rem;
+            box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .badge {
+            padding: 0.5em 1em;
+            border-radius: 5px;
+        }
+        
+        .input-group-text {
+            background-color: white;
+            border-right: none;
+        }
+        
+        .input-group .form-control {
+            border-left: none;
+        }
+        
+        .input-group .form-control:focus {
+            border-left: none;
+        }
+        
+        .dropdown-menu {
+            border: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-radius: 10px;
+        }
+        
+        .dropdown-item {
+            padding: 0.75rem 1.5rem;
+            transition: background-color 0.3s ease;
+        }
+        
+        .dropdown-item:hover {
+            background-color: var(--secondary-color);
+        }
+        
+        .notification-badge {
+            position: absolute;
+            top: 0;
+            right: 0;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            border-radius: 50%;
+            background-color: var(--accent-color);
+            color: white;
+        }
     </style>
+    {% block extra_css %}{% endblock %}
 </head>
 <body>
-    <header>
-        <div class="nav-left" style="display:flex;align-items:center;gap:14px;">
-            <a href="{{ url_for('index') }}">
-                <img src="{{ url_for('static', filename='img/edithunt_logo.png') }}" alt="EditHunt Logo" style="height:44px;vertical-align:middle;border-radius:10px;box-shadow:0 2px 8px #e3eafc;">
+    <nav class="navbar navbar-expand-lg navbar-light sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <i class="fas fa-edit me-2"></i>Edithunt
             </a>
-        </div>
-        <nav class="nav-main">
-            {% if current_user.is_authenticated %}
-                <a href="{{ url_for('dashboard') }}"><i class="fa-solid fa-gauge"></i> 대시보드</a>
-                <a href="{{ url_for('portfolio_list') }}"><i class="fa-solid fa-list"></i> 프로젝트</a>
-                <a href="{{ url_for('logout') }}"><i class="fa-solid fa-right-from-bracket"></i> 로그아웃</a>
-                {% if unread_count > 0 %}
-                    <span class="unread"><i class="fa-solid fa-envelope"></i> ({{ unread_count }} 새 메시지)</span>
-                {% endif %}
-                <!-- 벨 아이콘/알림 드롭다운 -->
-                <span id="bell-icon" style="position:relative;">
-                    <i class="fa-solid fa-bell"></i>
-                    <span id="bell-unread-count">0</span>
-                    <div id="bell-dropdown">
-                        <ul id="bell-dropdown-list"></ul>
-                    </div>
-                </span>
-            {% else %}
-                <a href="{{ url_for('login') }}"><i class="fa-solid fa-right-to-bracket"></i> 로그인</a>
-                <a href="{{ url_for('register') }}"><i class="fa-solid fa-user-plus"></i> 회원가입</a>
-            {% endif %}
-            <button id="darkmode-toggle" title="다크모드"><i class="fa-solid fa-moon"></i></button>
-        </nav>
-    </header>
-    <main>
-        {% with messages = get_flashed_messages(with_categories=true) %}
-          {% if messages %}
-            <div class="flash-messages">
-              {% for category, message in messages %}
-                <div class="flash {{ category }}">{{ message }}</div>
-              {% endfor %}
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('portfolio_list') }}">
+                            <i class="fas fa-briefcase me-1"></i>포트폴리오
+                        </a>
+                    </li>
+                    {% if current_user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('dashboard') }}">
+                            <i class="fas fa-chart-line me-1"></i>대시보드
+                        </a>
+                    </li>
+                    {% endif %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('faq_list') }}">
+                            <i class="fas fa-question-circle me-1"></i>FAQ
+                        </a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    {% if current_user.is_authenticated %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle position-relative" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle me-1"></i>{{ current_user.nickname }}
+                            {% if unread_count > 0 %}
+                            <span class="notification-badge">{{ unread_count }}</span>
+                            {% endif %}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li>
+                                <a class="dropdown-item" href="{{ url_for('profile') }}">
+                                    <i class="fas fa-user me-2"></i>프로필
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{{ url_for('messages_list') }}">
+                                    <i class="fas fa-envelope me-2"></i>메시지
+                                    {% if unread_count > 0 %}
+                                    <span class="badge bg-danger float-end">{{ unread_count }}</span>
+                                    {% endif %}
+                                </a>
+                            </li>
+                            {% if current_user.is_admin %}
+                            <li>
+                                <a class="dropdown-item" href="{{ url_for('admin') }}">
+                                    <i class="fas fa-cog me-2"></i>관리자
+                                </a>
+                            </li>
+                            {% endif %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item text-danger" href="{{ url_for('logout') }}">
+                                    <i class="fas fa-sign-out-alt me-2"></i>로그아웃
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('login') }}">
+                            <i class="fas fa-sign-in-alt me-1"></i>로그인
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('register') }}">
+                            <i class="fas fa-user-plus me-1"></i>회원가입
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
             </div>
-          {% endif %}
-        {% endwith %}
-        {% block content %}{% endblock %}
-    </main>
-    <footer>
-        <div class="footer-inner">© 2024 EditHunt. All rights reserved.</div>
+        </div>
+    </nav>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="container mt-3">
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5 class="mb-3">Edithunt</h5>
+                    <p class="text-muted">프리랜서 에디터를 위한 최고의 플랫폼</p>
+                </div>
+                <div class="col-md-4">
+                    <h5 class="mb-3">바로가기</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="{{ url_for('portfolio_list') }}" class="text-decoration-none text-muted">포트폴리오</a></li>
+                        <li><a href="{{ url_for('faq_list') }}" class="text-decoration-none text-muted">FAQ</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5 class="mb-3">문의하기</h5>
+                    <p class="text-muted">
+                        <i class="fas fa-envelope me-2"></i>support@edithunt.com<br>
+                        <i class="fas fa-phone me-2"></i>02-1234-5678
+                    </p>
+                </div>
+            </div>
+            <hr>
+            <div class="text-center text-muted">
+                <small>&copy; 2024 Edithunt. All rights reserved.</small>
+            </div>
+        </div>
     </footer>
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-    <!-- Socket.IO 클라이언트 라이브러리 -->
-    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
-    {% if current_user.is_authenticated %}
+        // 실시간 알림 처리
         var socket = io();
-        socket.emit('join', {user_id: '{{ current_user.id }}'});
-        // 토스트 알림 함수
-        function showToast(message) {
-            var toast = document.createElement('div');
-            toast.className = 'toast-notification';
-            toast.innerText = message;
-            document.body.appendChild(toast);
-            setTimeout(function() {
-                toast.classList.add('show');
-            }, 10);
-            setTimeout(function() {
-                toast.classList.remove('show');
-                setTimeout(function() { toast.remove(); }, 500);
-            }, 3500);
-        }
-        // 벨 아이콘 알림 리스트에 추가 함수(간단 예시)
-        function addBellNotification(message, timestamp, notif_id) {
-            var bellList = document.getElementById('bell-dropdown-list');
-            if (bellList) {
-                var li = document.createElement('li');
-                li.innerText = message + ' (' + (timestamp ? timestamp.substring(11,16) : '') + ')';
-                if (notif_id) li.dataset.notifId = notif_id;
-                li.className = 'unread-notif';
-                bellList.prepend(li);
-            }
-            var bellCount = document.getElementById('bell-unread-count');
-            if (bellCount) {
-                bellCount.innerText = parseInt(bellCount.innerText||'0') + 1;
-                bellCount.style.display = 'inline-block';
-            }
-        }
         socket.on('send_notification', function(data) {
-            showToast(data.message);
-            addBellNotification(data.message, data.timestamp, data.notif_id);
+            // 알림 표시
+            var alert = document.createElement('div');
+            alert.className = 'alert alert-info alert-dismissible fade show';
+            alert.innerHTML = `
+                ${data.message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.querySelector('.container').insertBefore(alert, document.querySelector('.container').firstChild);
+            
+            // 알림 카운트 업데이트
+            var badge = document.querySelector('.notification-badge');
+            if (badge) {
+                var count = parseInt(badge.textContent) + 1;
+                badge.textContent = count;
+            }
         });
-        // 벨 아이콘 드롭다운 토글
-        var bellIcon = document.getElementById('bell-icon');
-        var bellDropdown = document.getElementById('bell-dropdown');
-        if (bellIcon && bellDropdown) {
-            bellIcon.addEventListener('click', function(e) {
-                e.stopPropagation();
-                bellDropdown.style.display = (bellDropdown.style.display === 'block') ? 'none' : 'block';
-            });
-            document.addEventListener('click', function() {
-                bellDropdown.style.display = 'none';
-            });
-        }
-        // 알림 클릭 시 읽음 처리
-        var bellList = document.getElementById('bell-dropdown-list');
-        if (bellList) {
-            bellList.addEventListener('click', function(e) {
-                var li = e.target.closest('li');
-                if (li && li.dataset.notifId && li.classList.contains('unread-notif')) {
-                    fetch('/notifications/read/' + li.dataset.notifId, {method:'POST', headers:{'X-Requested-With':'XMLHttpRequest'}})
-                        .then(r=>r.json()).then(data=>{
-                            if(data.success) {
-                                li.classList.remove('unread-notif');
-                                var bellCount = document.getElementById('bell-unread-count');
-                                if (bellCount) {
-                                    var n = parseInt(bellCount.innerText||'0')-1;
-                                    bellCount.innerText = n>0?n:0;
-                                    if(n<=0) bellCount.style.display='none';
-                                }
-                            }
-                        });
-                }
-            });
-        }
-    {% endif %}
-    });
     </script>
-    <style>
-    .toast-notification {
-        position: fixed;
-        right: 32px;
-        bottom: 32px;
-        background: #222;
-        color: #fff;
-        padding: 16px 28px;
-        border-radius: 8px;
-        opacity: 0;
-        z-index: 9999;
-        font-size: 1.1em;
-        box-shadow: 0 4px 16px rgba(0,0,0,0.15);
-        transition: opacity 0.4s, transform 0.4s;
-        transform: translateY(40px);
-        pointer-events: none;
-    }
-    .toast-notification.show {
-        opacity: 1;
-        transform: translateY(0);
-    }
-    /* 벨 아이콘/알림 드롭다운 예시 스타일 */
-    #bell-icon {
-        position: relative;
-        cursor: pointer;
-        font-size: 1.6em;
-        margin-right: 16px;
-    }
-    #bell-unread-count {
-        position: absolute;
-        top: -6px;
-        right: -8px;
-        background: #e74c3c;
-        color: #fff;
-        border-radius: 50%;
-        padding: 2px 7px;
-        font-size: 0.8em;
-        display: none;
-    }
-    #bell-dropdown {
-        display: none;
-        position: absolute;
-        right: 0;
-        top: 36px;
-        background: #fff;
-        border: 1px solid #eee;
-        border-radius: 8px;
-        min-width: 260px;
-        box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-        z-index: 1000;
-    }
-    #bell-dropdown-list {
-        list-style: none;
-        margin: 0;
-        padding: 0;
-        max-height: 320px;
-        overflow-y: auto;
-    }
-    #bell-dropdown-list li {
-        padding: 12px 18px;
-        border-bottom: 1px solid #f2f2f2;
-        font-size: 1em;
-        color: #333;
-    }
-    #bell-dropdown-list li:last-child {
-        border-bottom: none;
-    }
-    .unread-notif {
-        background: #f3f7ff;
-        font-weight: 600;
-    }
-    </style>
+    {% block extra_js %}{% endblock %}
 </body>
 </html> 

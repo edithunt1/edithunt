@@ -43,6 +43,7 @@ class User(db.Model, UserMixin):
     password = db.Column(db.String(128), nullable=False)
     role = db.Column(db.String(20), nullable=False, default='freelancer')
     nickname = db.Column(db.String(32), unique=True, nullable=False)  # 닉네임(중복 불가)
+    profile_image = db.Column(db.String(256), default='default_profile.jpg')  # 프로필 이미지 필드 추가
     is_verified = db.Column(db.Boolean, default=False)  # 이메일 인증 여부
     verify_token = db.Column(db.String(128), nullable=True)  # 이메일 인증 토큰
     reset_token = db.Column(db.String(128), nullable=True)  # 비밀번호 재설정 토큰
@@ -296,7 +297,7 @@ def admin():
 @login_required
 def profile():
     my_portfolio = Portfolio.query.filter_by(freelancer_id=current_user.id).first()
-    return render_template('profile.html', my_portfolio=my_portfolio)
+    return render_template('profile.html', my_portfolio=my_portfolio, user=current_user)
 
 @app.route('/pay/<int:project_id>', methods=['GET'])
 @login_required
@@ -357,10 +358,31 @@ def profile_edit():
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
+        nickname = request.form['nickname']
+        
+        # 프로필 이미지 처리
+        if 'profile_image' in request.files:
+            file = request.files['profile_image']
+            if file and allowed_file(file.filename):
+                # 기존 프로필 이미지가 기본 이미지가 아닌 경우 삭제
+                if current_user.profile_image != 'default_profile.jpg':
+                    try:
+                        os.remove(os.path.join(app.config['UPLOAD_FOLDER'], current_user.profile_image))
+                    except:
+                        pass
+                
+                # 새 이미지 저장
+                filename = secure_filename(f"profile_{current_user.id}_{int(time.time())}_{file.filename}")
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                current_user.profile_image = filename
+        
         if email:
             current_user.email = email
         if password:
             current_user.password = generate_password_hash(password)
+        if nickname:
+            current_user.nickname = nickname
+            
         db.session.commit()
         flash('프로필이 수정되었습니다.', 'success')
         return redirect(url_for('profile'))

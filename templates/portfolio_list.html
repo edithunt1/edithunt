@@ -1,53 +1,86 @@
 {% extends 'base.html' %}
-{% block title %}포트폴리오 목록 - EditHunt{% endblock %}
+{% block title %}포트폴리오 - Edithunt{% endblock %}
 {% block content %}
-<div style="max-width:1100px;margin:48px auto 0 auto;">
-    <h2 style="text-align:center;margin-bottom:32px;"><img src="{{ url_for('static', filename='img/edithunt_logo.png') }}" alt="Logo" style="height:48px;"></h2>
-    <form method="get" style="display:flex;gap:12px;justify-content:center;align-items:center;margin-bottom:24px;background:#f8fbff;padding:18px 24px 14px 24px;border-radius:18px;box-shadow:0 2px 8px #e3eafc;font-size:1.01rem;">
-        <input type="text" name="query" value="{{ request.args.get('query', '') }}" placeholder="포트폴리오, 작가, 태그 검색" style="flex:1;max-width:340px;padding:14px 18px;border-radius:14px;border:1.5px solid #b0c7f7;font-size:1.08rem;background:#fff;">
-        <button type="submit" class="cta-btn" style="background:linear-gradient(90deg,#1976d2 0%,#42a5f5 100%);color:#fff;padding:12px 32px;border-radius:14px;font-size:1.08rem;font-weight:900;">검색</button>
-    </form>
-    <div style="display:flex;flex-wrap:wrap;gap:10px 16px;justify-content:center;margin-bottom:36px;font-size:0.98rem;">
-        <span style="background:#e3f0fc;color:#1976d2;padding:8px 18px;border-radius:12px;font-size:1.01rem;font-weight:700;cursor:pointer;transition:background 0.2s;">#디자인</span>
-        <span style="background:#e3f0fc;color:#1976d2;padding:8px 18px;border-radius:12px;font-size:1.01rem;font-weight:700;cursor:pointer;transition:background 0.2s;">#영상</span>
-        <span style="background:#e3f0fc;color:#1976d2;padding:8px 18px;border-radius:12px;font-size:1.01rem;font-weight:700;cursor:pointer;transition:background 0.2s;">#일러스트</span>
-        <span style="background:#e3f0fc;color:#1976d2;padding:8px 18px;border-radius:12px;font-size:1.01rem;font-weight:700;cursor:pointer;transition:background 0.2s;">#음악</span>
-        <span style="background:#e3f0fc;color:#1976d2;padding:8px 18px;border-radius:12px;font-size:1.01rem;font-weight:700;cursor:pointer;transition:background 0.2s;">#기타</span>
+<div class="container mt-5">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2 class="mb-0">
+                <i class="fas fa-briefcase me-2"></i>포트폴리오
+            </h2>
+        </div>
+        <div class="col-md-4">
+            <form method="GET" class="d-flex">
+                <div class="input-group">
+                    <input type="text" class="form-control" name="query" value="{{ request.args.get('query', '') }}" placeholder="검색어를 입력하세요">
+                    <button class="btn btn-primary" type="submit">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
-    <div class="portfolio-grid" style="display:flex;flex-wrap:wrap;gap:32px 24px;justify-content:center;">
-    {% if portfolios and portfolios|length > 0 %}
-        {% for portfolio in portfolios %}
-        {% set user = users_dict[portfolio.freelancer_id] if users_dict and portfolio.freelancer_id in users_dict else None %}
-        <a href="{{ url_for('portfolio_detail', portfolio_id=portfolio.id) }}" class="main-card portfolio-card" style="width:calc(50% - 24px);min-width:320px;max-width:480px;display:flex;align-items:center;gap:36px;background:#fff;border-radius:26px;box-shadow:0 8px 32px #e3eafc;padding:0 0 0 0;overflow:hidden;transition:box-shadow 0.2s;min-height:140px;text-decoration:none;">
-            <div style="width:140px;height:140px;flex-shrink:0;background:#f8fbff;display:flex;align-items:center;justify-content:center;">
-                {% if portfolio.thumbnail %}
-                <img src="/static/uploads/{{ portfolio.thumbnail }}" alt="포트폴리오 썸네일" style="width:110px;height:110px;object-fit:cover;border-radius:18px;border:2px solid #42a5f5;box-shadow:0 2px 8px #e3eafc;" onerror="this.onerror=null;this.src='/static/img/profile_sample.jpg';">
-                {% else %}
-                <img src="/static/img/profile_sample.jpg" alt="포트폴리오 썸네일" style="width:110px;height:110px;object-fit:cover;border-radius:18px;border:2px solid #42a5f5;box-shadow:0 2px 8px #e3eafc;">
-                {% endif %}
+
+    <div class="row">
+        {% if portfolios %}
+            {% for portfolio in portfolios %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        {% if portfolio.thumbnail %}
+                            <img src="{{ url_for('static', filename='uploads/' + portfolio.thumbnail) }}" 
+                                 class="card-img-top" 
+                                 style="height: 200px; object-fit: cover;"
+                                 alt="포트폴리오 썸네일">
+                        {% else %}
+                            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" 
+                                 style="height: 200px;">
+                                <i class="fas fa-image fa-3x text-muted"></i>
+                            </div>
+                        {% endif %}
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                <img src="{{ url_for('static', filename='uploads/' + users_dict[portfolio.freelancer_id].profile_image) }}" 
+                                     class="rounded-circle me-2" 
+                                     style="width: 40px; height: 40px; object-fit: cover;"
+                                     alt="프리랜서 프로필">
+                                <div>
+                                    <h6 class="mb-0">{{ users_dict[portfolio.freelancer_id].nickname }}</h6>
+                                    <small class="text-muted">{{ users_dict[portfolio.freelancer_id].email }}</small>
+                                </div>
+                            </div>
+                            <h5 class="card-title">{{ portfolio.content[:100] }}...</h5>
+                            <p class="card-text text-muted">
+                                <i class="fas fa-tag me-1"></i>{{ portfolio.category }}
+                            </p>
+                            {% if portfolio.tags %}
+                                <div class="mb-3">
+                                    {% for tag in portfolio.tags.split(',') %}
+                                        <span class="badge bg-light text-dark me-1">{{ tag.strip() }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="h5 mb-0">{{ portfolio.price|format_number }}원</span>
+                                {% if portfolio.id in payments %}
+                                    <span class="badge bg-success">구매완료</span>
+                                {% else %}
+                                    <a href="{{ url_for('portfolio_detail', portfolio_id=portfolio.id) }}" class="btn btn-primary">
+                                        <i class="fas fa-eye me-1"></i>자세히 보기
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="text-center py-5">
+                    <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                    <h4 class="text-muted">검색 결과가 없습니다.</h4>
+                    <p class="text-muted">다른 검색어로 시도해보세요.</p>
+                </div>
             </div>
-            <div style="flex:1;padding:32px 32px 32px 0;">
-                <div class="profile-name" style="color:#1565c0;font-size:1.18rem;font-weight:900;margin-bottom:8px;letter-spacing:-0.5px;">
-                    <b>{% if user %}{{ user.nickname }}{% else %}프리랜서 #{{ portfolio.freelancer_id }}{% endif %}</b>
-                </div>
-                <div class="profile-desc" style="color:#222;font-size:1.08rem;margin-bottom:14px;line-height:1.6;">{{ portfolio.content[:80] }}{% if portfolio.content|length > 80 %}...{% endif %}</div>
-                <div style="font-size:1.08rem;color:#1976d2;font-weight:700;margin-bottom:10px;">가격: {{ portfolio.price if portfolio.price else '미정' }}</div>
-                <div style="display:flex;gap:18px;align-items:center;">
-                    <!-- 메시지 보내기 버튼 제거 -->
-                </div>
-                {% if portfolio.tags %}
-                <div class="portfolio-tags" style="margin-top:8px;">
-                  {% for tag in portfolio.tags.split(',') %}
-                    <span class="tag" style="display:inline-block;background:#f0f0f0;color:#1976d2;border-radius:12px;padding:2px 10px;margin-right:5px;font-size:0.95em;">#{{ tag.strip() }}</span>
-                  {% endfor %}
-                </div>
-                {% endif %}
-            </div>
-        </a>
-        {% endfor %}
-    {% else %}
-        <div class="main-card portfolio-card" style="opacity:0.7;background:#fff; border:1.5px solid #e3f2fd; box-shadow:0 6px 32px rgba(33,150,243,0.13);padding:48px 0;text-align:center;font-size:1.15rem;color:#888;border-radius:22px;">등록된 포트폴리오가 없습니다.</div>
-    {% endif %}
+        {% endif %}
     </div>
 </div>
 {% endblock %} 

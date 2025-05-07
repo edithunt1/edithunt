@@ -1,21 +1,76 @@
 {% extends 'base.html' %}
 {% block title %}프로필 수정 - Edithunt{% endblock %}
 {% block content %}
-<div style="max-width:420px;margin:40px auto 0 auto;background:#fff;border-radius:18px;box-shadow:0 2px 16px #e3eafc;padding:0;">
-    <form method="post" style="padding:32px 32px 28px 32px;">
-        <h2 style="font-size:1.3rem;font-weight:800;color:#4f8cff;margin-bottom:24px;text-align:center;">프로필 수정</h2>
-        <div style="margin-bottom:18px;">
-            <label for="email" style="font-weight:600;color:#1976d2;">이메일</label>
-            <input type="email" id="email" name="email" value="{{ user.email }}" required style="width:100%;padding:12px 14px;border-radius:8px;border:1.5px solid #4f8cff;margin-top:6px;">
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <h2 class="card-title text-center mb-4">프로필 수정</h2>
+                    <form method="POST" enctype="multipart/form-data">
+                        <div class="row">
+                            <div class="col-md-4 text-center">
+                                <div class="position-relative d-inline-block mb-4">
+                                    <img src="{{ url_for('static', filename='uploads/' + user.profile_image) }}" 
+                                         class="rounded-circle border border-light shadow-sm" 
+                                         style="width: 200px; height: 200px; object-fit: cover;"
+                                         alt="프로필 이미지">
+                                    <label for="profile_image" class="btn btn-light btn-sm position-absolute bottom-0 end-0 rounded-circle shadow-sm" style="width: 40px; height: 40px; padding: 0; cursor: pointer;">
+                                        <i class="fas fa-camera"></i>
+                                    </label>
+                                    <input type="file" class="d-none" id="profile_image" name="profile_image" accept="image/*" onchange="previewImage(this)">
+                                </div>
+                                <p class="text-muted small">프로필 이미지를 변경하려면 카메라 아이콘을 클릭하세요</p>
+                            </div>
+                            <div class="col-md-8">
+                                <div class="form-group mb-3">
+                                    <label for="email" class="form-label">이메일</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                        <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" required>
+                                    </div>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label for="nickname" class="form-label">닉네임</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                        <input type="text" class="form-control" id="nickname" name="nickname" value="{{ user.nickname }}" required>
+                                    </div>
+                                </div>
+                                <div class="form-group mb-4">
+                                    <label for="password" class="form-label">새 비밀번호</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                        <input type="password" class="form-control" id="password" name="password" placeholder="변경하지 않으려면 비워두세요">
+                                    </div>
+                                    <div class="form-text">비밀번호를 변경하지 않으려면 비워두세요</div>
+                                </div>
+                                <div class="d-grid gap-2">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-2"></i>변경사항 저장
+                                    </button>
+                                    <a href="{{ url_for('profile') }}" class="btn btn-outline-secondary">
+                                        <i class="fas fa-times me-2"></i>취소
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
-        <div style="margin-bottom:18px;">
-            <label for="password" style="font-weight:600;color:#1976d2;">새 비밀번호</label>
-            <input type="password" id="password" name="password" placeholder="변경 시에만 입력" style="width:100%;padding:12px 14px;border-radius:8px;border:1.5px solid #4f8cff;margin-top:6px;">
-        </div>
-        <div style="display:flex;gap:10px;justify-content:center;margin-top:28px;">
-            <button type="submit" class="cta-btn" style="background:#4f8cff;color:#fff;padding:10px 32px;border-radius:10px;font-weight:700;">저장</button>
-            <a href="{{ url_for('profile') }}" class="cta-btn cta-btn-outline" style="color:#4f8cff;border:2px solid #4f8cff;padding:10px 32px;border-radius:10px;font-weight:700;">취소</a>
-        </div>
-    </form>
+    </div>
 </div>
+
+<script>
+function previewImage(input) {
+    if (input.files && input.files[0]) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            input.previousElementSibling.src = e.target.result;
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+</script>
 {% endblock %} 

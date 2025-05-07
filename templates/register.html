@@ -1,73 +1,65 @@
 {% extends 'base.html' %}
-{% block title %}회원가입 - EditHunt{% endblock %}
+{% block title %}회원가입 - Edithunt{% endblock %}
 {% block content %}
-<div style="max-width:420px;margin:60px auto 0 auto;">
-    <div style="display:flex;">
-        <div id="tab-client" class="tab-active" style="flex:1;text-align:center;padding:18px 0;background:#1976d2;color:#fff;font-weight:700;border-radius:14px 0 0 0;cursor:pointer;transition:background 0.2s, color 0.2s;">클라이언트 가입</div>
-        <div id="tab-freelancer" style="flex:1;text-align:center;padding:18px 0;background:#fff;color:#1976d2;font-weight:700;border:2px solid #1976d2;border-left:none;border-radius:0 14px 0 0;cursor:pointer;transition:background 0.2s, color 0.2s;">프리랜서 가입</div>
-    </div>
-    <div class="main-card" style="padding:44px 36px 32px 36px;border-radius:0 0 18px 18px;border:1.5px solid #e3f0fc;background:#fff;box-shadow:0 8px 32px #e3eafc;">
-        <div style="color:#1976d2;font-size:1.01rem;margin-bottom:18px;text-align:center;font-weight:600;">
-            <span style="font-size:1.2em;">&#9432;</span> 만 14세 이상만 EditHunt 서비스를 이용하실 수 있습니다.
-        </div>
-        <form method="post" style="display:flex;flex-direction:column;gap:18px;">
-            {{ csrf_token() }}
-            <div>
-                <label for="email" style="font-weight:700;color:#1976d2;">이메일</label>
-                <input type="email" id="email" name="email" required placeholder="이메일을 입력하세요">
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <h2 class="text-center mb-4">회원가입</h2>
+                    <form method="POST">
+                        <div class="form-group mb-3">
+                            <label for="email" class="form-label">이메일</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                <input type="email" class="form-control" id="email" name="email" required>
+                            </div>
+                            <div class="form-text">이메일 인증이 필요합니다.</div>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="password" class="form-label">비밀번호</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                <input type="password" class="form-control" id="password" name="password" required>
+                            </div>
+                            <div class="form-text">8자 이상의 영문, 숫자, 특수문자 조합</div>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="nickname" class="form-label">닉네임</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                <input type="text" class="form-control" id="nickname" name="nickname" required>
+                            </div>
+                        </div>
+                        <div class="form-group mb-4">
+                            <label class="form-label">회원 유형</label>
+                            <div class="d-flex gap-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="role" id="role_freelancer" value="freelancer" checked>
+                                    <label class="form-check-label" for="role_freelancer">
+                                        <i class="fas fa-user-tie me-1"></i>프리랜서
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="role" id="role_client" value="client">
+                                    <label class="form-check-label" for="role_client">
+                                        <i class="fas fa-building me-1"></i>클라이언트
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-user-plus me-2"></i>회원가입
+                            </button>
+                            <a href="{{ url_for('login') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-sign-in-alt me-2"></i>로그인으로 돌아가기
+                            </a>
+                        </div>
+                    </form>
+                </div>
             </div>
-            <div>
-                <label for="password" style="font-weight:700;color:#1976d2;">비밀번호</label>
-                <input type="password" id="password" name="password" required placeholder="비밀번호를 입력하세요">
-            </div>
-            <div>
-                <label for="password2" style="font-weight:700;color:#1976d2;">비밀번호 확인</label>
-                <input type="password" id="password2" name="password2" required placeholder="비밀번호를 다시 입력하세요">
-            </div>
-            <div>
-                <label for="nickname" style="font-weight:700;color:#1976d2;">닉네임 <span style="color:#d32f2f;font-weight:400;">*</span></label>
-                <input type="text" id="nickname" name="nickname" required maxlength="32" placeholder="닉네임을 입력하세요">
-                <div style="color:#8fa1c7;font-size:0.98rem;margin-top:6px;">닉네임은 중복될 수 없습니다.</div>
-            </div>
-            <input type="hidden" id="role" name="role" value="client">
-            <button type="submit" class="cta-btn" style="width:100%;font-size:1.13rem;">가입하기</button>
-        </form>
-        <div style="margin-top:1.7rem;text-align:center;">
-            <a href="{{ url_for('login') }}" style="color:#1976d2;font-weight:700;text-decoration:none;">이미 계정이 있으신가요? 로그인</a>
         </div>
     </div>
 </div>
-<script>
-const tabClient = document.getElementById('tab-client');
-const tabFreelancer = document.getElementById('tab-freelancer');
-const roleInput = document.getElementById('role');
-function activateTab(tab) {
-    if(tab === 'client') {
-        tabClient.style.background = '#1976d2';
-        tabClient.style.color = '#fff';
-        tabFreelancer.style.background = '#fff';
-        tabFreelancer.style.color = '#1976d2';
-        tabFreelancer.style.border = '2px solid #1976d2';
-        tabClient.style.border = 'none';
-        roleInput.value = 'client';
-    } else {
-        tabFreelancer.style.background = '#1976d2';
-        tabFreelancer.style.color = '#fff';
-        tabClient.style.background = '#fff';
-        tabClient.style.color = '#1976d2';
-        tabClient.style.border = '2px solid #1976d2';
-        tabFreelancer.style.border = 'none';
-        roleInput.value = 'freelancer';
-    }
-}
-tabClient.addEventListener('click', function() { activateTab('client'); });
-tabFreelancer.addEventListener('click', function() { activateTab('freelancer'); });
-</script>
-{% if current_user.is_authenticated %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // ... JS 코드 ...
-});
-</script>
-{% endif %}
 {% endblock %} 
