@@ -8,6 +8,7 @@
                 <div class="card-body p-4">
                     <h2 class="text-center mb-4">로그인</h2>
                     <form method="POST">
+                        {{ form.csrf_token }}
                         <div class="form-group mb-3">
                             <label for="email" class="form-label">이메일</label>
                             <div class="input-group">
