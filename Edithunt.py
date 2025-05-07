@@ -10,9 +10,11 @@ import base64
 import secrets
 from flask_mail import Message as MailMessage, Mail
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_wtf import CSRFProtect
+from flask_wtf import CSRFProtect, FlaskForm
 from sqlalchemy import text
 import time
+from wtforms import StringField, PasswordField
+from wtforms.validators import DataRequired, Email
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret'
@@ -23,6 +25,12 @@ app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USERNAME'] = ''  # your email
 app.config['MAIL_PASSWORD'] = ''  # your password
 app.config['MAIL_DEFAULT_SENDER'] = ''
+app.config['SESSION_COOKIE_SECURE'] = True
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['WTF_CSRF_ENABLED'] = True
+app.config['WTF_CSRF_SECRET_KEY'] = 'your_csrf_secret'
+app.config['WTF_CSRF_TIME_LIMIT'] = 3600
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 socketio = SocketIO(app)
@@ -89,6 +97,10 @@ class FAQ(db.Model):
     order = db.Column(db.Integer, default=0)
     is_active = db.Column(db.Boolean, default=True)
 
+class LoginForm(FlaskForm):
+    email = StringField('이메일', validators=[DataRequired(), Email()])
+    password = PasswordField('비밀번호', validators=[DataRequired()])
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
@@ -146,19 +158,19 @@ def verify_email(token):
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    if request.method == 'POST':
-        email = request.form.get('email')
-        password = request.form.get('password')
+    form = LoginForm()
+    if form.validate_on_submit():
+        email = form.email.data
+        password = form.password.data
         user = User.query.filter_by(email=email).first()
         if user and check_password_hash(user.password, password):
             if not user.is_verified:
                 flash('이메일 인증이 필요합니다. 메일함을 확인해 주세요.', 'danger')
-                return render_template('login.html')
+                return render_template('login.html', form=form)
             login_user(user)
             return redirect(url_for('dashboard'))
         flash('이메일 또는 비밀번호를 확인해 주세요.', 'danger')
-        return render_template('login.html')
-    return render_template('login.html')
+    return render_template('login.html', form=form)
 
 @app.route('/logout')
 @login_required
