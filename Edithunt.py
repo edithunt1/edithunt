@@ -709,11 +709,30 @@ def pay_portfolio_complete():
 
 if __name__ == '__main__':
     with app.app_context():
-        # 기존 테이블 삭제
-        db.drop_all()
-        
-        # 테이블 재생성
-        db.create_all()
+        # 데이터베이스 마이그레이션
+        inspector = inspect(db.engine)
+        if 'user' in inspector.get_table_names():
+            columns = [col['name'] for col in inspector.get_columns('user')]
+            
+            # 필요한 컬럼들 추가
+            missing_columns = {
+                'is_verified': 'BOOLEAN DEFAULT FALSE',
+                'verify_token': 'VARCHAR(128)',
+                'reset_token': 'VARCHAR(128)',
+                'is_admin': 'BOOLEAN DEFAULT FALSE'
+            }
+            
+            for col_name, col_type in missing_columns.items():
+                if col_name not in columns:
+                    try:
+                        db.session.execute(text(f'ALTER TABLE user ADD COLUMN {col_name} {col_type}'))
+                        db.session.commit()
+                        print(f"{col_name} 컬럼이 추가되었습니다.")
+                    except Exception as e:
+                        print(f"{col_name} 컬럼 추가 실패:", e)
+        else:
+            # 테이블이 없는 경우 새로 생성
+            db.create_all()
         
         # 기본 관리자 계정 생성
         admin = User.query.filter_by(email='admin@example.com').first()
