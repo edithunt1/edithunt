@@ -709,11 +709,13 @@ def pay_portfolio_complete():
 
 if __name__ == '__main__':
     with app.app_context():
-        # Drop all tables and recreate them
+        # 기존 테이블 삭제
         db.drop_all()
+        
+        # 테이블 재생성
         db.create_all()
         
-        # Create an admin user if none exists
+        # 기본 관리자 계정 생성
         admin = User.query.filter_by(email='admin@example.com').first()
         if not admin:
             admin = User(
@@ -726,6 +728,7 @@ if __name__ == '__main__':
             )
             db.session.add(admin)
             db.session.commit()
+            print('기본 관리자 계정이 생성되었습니다.')
         
         print('Flask Edithunt 서버를 시작합니다!')
         port = int(os.environ.get('PORT', 10000))
