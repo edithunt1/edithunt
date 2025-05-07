@@ -710,18 +710,26 @@ def pay_portfolio_complete():
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-        # inspector = inspect(db.engine)
-        # columns = [col['name'] for col in inspector.get_columns('portfolio')]
-        # if 'tags' not in columns:
-        #     try:
-        #         db.session.execute(text('ALTER TABLE portfolio ADD COLUMN tags VARCHAR(255)'))
-        #         db.session.commit()
-        #         print("tags 컬럼이 추가되었습니다.")
-        #     except Exception as e:
-        #         print("tags 컬럼 추가 실패:", e)
-        # else:
-        #     print("tags 컬럼이 이미 존재합니다.")
-        # ... (다른 컬럼/테이블도 위 방식으로 점검)
-    print('Flask Edithunt 서버를 시작합니다!')
-    port = int(os.environ.get('PORT', 10000))
-    app.run(host='0.0.0.0', port=port, debug=True) 
+        inspector = inspect(db.engine)
+        columns = [col['name'] for col in inspector.get_columns('user')]
+        
+        # 필요한 컬럼들 추가
+        missing_columns = {
+            'is_verified': 'BOOLEAN DEFAULT FALSE',
+            'verify_token': 'VARCHAR(128)',
+            'reset_token': 'VARCHAR(128)',
+            'is_admin': 'BOOLEAN DEFAULT FALSE'
+        }
+        
+        for col_name, col_type in missing_columns.items():
+            if col_name not in columns:
+                try:
+                    db.session.execute(text(f'ALTER TABLE user ADD COLUMN {col_name} {col_type}'))
+                    db.session.commit()
+                    print(f"{col_name} 컬럼이 추가되었습니다.")
+                except Exception as e:
+                    print(f"{col_name} 컬럼 추가 실패:", e)
+        
+        print('Flask Edithunt 서버를 시작합니다!')
+        port = int(os.environ.get('PORT', 10000))
+        app.run(host='0.0.0.0', port=port, debug=True) 
