@@ -12,6 +12,7 @@ from flask_mail import Message as MailMessage, Mail
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_wtf import CSRFProtect
 from sqlalchemy import text
+import time
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret'
@@ -632,6 +633,79 @@ def portfolio_delete(portfolio_id):
     db.session.commit()
     flash('포트폴리오가 삭제되었습니다.', 'success')
     return redirect(url_for('dashboard'))
+
+# NICE PG 결제 관련 설정
+NICE_PG_MID = "nicepg_mid"  # 나이스페이먼츠 상점 ID
+NICE_PG_KEY = "nicepg_key"  # 나이스페이먼츠 키
+NICE_PG_RETURN_URL = "http://your-domain.com/pay/portfolio/complete"  # 결제 완료 후 리턴 URL
+
+@app.route('/pay/portfolio', methods=['GET', 'POST'])
+@login_required
+def pay_portfolio():
+    if request.method == 'POST':
+        amount = request.form.get('amount')
+        order_id = request.form.get('order_id')
+        payment_method = request.form.get('payment_method')
+        
+        # 나이스페이먼츠 결제 요청 데이터 생성
+        payment_data = {
+            'MID': NICE_PG_MID,
+            'Moid': order_id,
+            'GoodsName': '포트폴리오 등록',
+            'Amt': amount,
+            'BuyerName': current_user.username,
+            'BuyerEmail': current_user.email,
+            'ReturnURL': NICE_PG_RETURN_URL,
+            'PayMethod': payment_method
+        }
+        
+        # 결제 요청 처리
+        try:
+            # 나이스페이먼츠 결제창 호출
+            return render_template('nice_payment.html', payment_data=payment_data)
+        except Exception as e:
+            flash('결제 처리 중 오류가 발생했습니다.', 'danger')
+            return redirect(url_for('portfolio_register'))
+    
+    # GET 요청 처리 (결제 페이지 표시)
+    amount = 10000  # 포트폴리오 등록 비용
+    order_id = f"EDITHUNT-{int(time.time())}"
+    return render_template('pay_portfolio.html', amount=amount, order_id=order_id)
+
+@app.route('/pay/portfolio/complete', methods=['POST'])
+@login_required
+def pay_portfolio_complete():
+    # 나이스페이먼츠 결제 완료 처리
+    result_code = request.form.get('ResultCode')
+    result_msg = request.form.get('ResultMsg')
+    order_id = request.form.get('Moid')
+    amount = request.form.get('Amt')
+    
+    if result_code == '0000':  # 결제 성공
+        # 결제 내역 저장
+        payment = Payment(
+            user_id=current_user.id,
+            amount=int(amount),
+            description='포트폴리오 등록비',
+            payment_id=order_id
+        )
+        db.session.add(payment)
+        
+        # 포트폴리오 등록 처리
+        portfolio_content = session.pop('portfolio_content', None)
+        if portfolio_content:
+            portfolio = Portfolio(
+                content=portfolio_content,
+                freelancer_id=current_user.id
+            )
+            db.session.add(portfolio)
+            db.session.commit()
+            
+            flash('포트폴리오가 성공적으로 등록되었습니다!', 'success')
+            return redirect(url_for('dashboard'))
+    else:
+        flash(f'결제 실패: {result_msg}', 'danger')
+        return redirect(url_for('portfolio_register'))
 
 if __name__ == '__main__':
     with app.app_context():

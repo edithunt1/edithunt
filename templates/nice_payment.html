@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block title %}결제 진행 - Edithunt{% endblock %}
+{% block content %}
+<div style="display: none;">
+    <form id="nice_payment_form" method="post" action="https://web.nicepay.co.kr/v3/v3Payment.jsp">
+        {% for key, value in payment_data.items() %}
+        <input type="hidden" name="{{ key }}" value="{{ value }}">
+        {% endfor %}
+    </form>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('nice_payment_form').submit();
+    });
+</script>
+
+<div style="text-align: center; margin-top: 50px;">
+    <h3>결제창으로 이동중입니다...</h3>
+    <p>잠시만 기다려주세요.</p>
+</div>
+{% endblock %} 

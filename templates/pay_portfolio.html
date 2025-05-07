@@ -1,12 +1,31 @@
 {% extends 'base.html' %}
-{% block title %}포트폴리오 결제 - Edithunt{% endblock %}
+{% block title %}포트폴리오 등록 결제 - Edithunt{% endblock %}
 {% block content %}
-<div style="max-width:500px;margin:40px auto 0 auto;">
-    <div style="padding:32px 32px 24px 32px;border:2px solid #e3f0fc;border-radius:16px;background:#fff;box-shadow:0 2px 8px rgba(25,118,210,0.06);">
-        <h2 style="text-align:center;font-size:2rem;font-weight:bold;margin-bottom:24px;color:#1976d2;">포트폴리오 결제</h2>
-        <p style="text-align:center;font-size:1.2rem;margin-bottom:24px;">결제 금액: <b>{{ amount }}원</b></p>
-        <form method="post">
-            <button type="submit" class="cta-btn" style="width:100%;background:#1976d2;color:#fff;font-size:1.1rem;padding:14px 0;border-radius:8px;font-weight:bold;">결제하기</button>
+<div class="container" style="max-width: 800px; margin: 40px auto; padding: 20px;">
+    <h2 style="text-align: center; margin-bottom: 30px;">포트폴리오 등록 결제</h2>
+    
+    <div class="payment-info" style="background: #fff; padding: 30px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+        <h3 style="margin-bottom: 20px;">결제 정보</h3>
+        <p style="font-size: 1.1em; margin-bottom: 10px;">상품명: 포트폴리오 등록</p>
+        <p style="font-size: 1.1em; margin-bottom: 20px;">결제금액: {{ amount }}원</p>
+        
+        <form id="payment-form" method="post" action="{{ url_for('pay_portfolio') }}">
+            <input type="hidden" name="amount" value="{{ amount }}">
+            <input type="hidden" name="order_id" value="{{ order_id }}">
+            <input type="hidden" name="user_email" value="{{ current_user.email }}">
+            
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 10px;">결제 수단 선택</label>
+                <select name="payment_method" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                    <option value="card">신용카드</option>
+                    <option value="vbank">가상계좌</option>
+                    <option value="trans">실시간계좌이체</option>
+                </select>
+            </div>
+            
+            <button type="submit" class="cta-btn" style="width: 100%; padding: 15px; background: #1976d2; color: white; border: none; border-radius: 8px; font-size: 1.1em; cursor: pointer;">
+                결제하기
+            </button>
         </form>
     </div>
 </div>
