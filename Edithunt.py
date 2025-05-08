@@ -74,6 +74,8 @@ class Portfolio(db.Model):
     thumbnail = db.Column(db.String(256))  # 썸네일 파일 경로
     files = db.Column(db.Text)  # 첨부파일 목록(여러 개, 콤마로 구분)
     tags = db.Column(db.String(255))  # 쉼표로 구분된 태그 문자열
+    status = db.Column(db.String(20), default='pending')  # pending, accepted, rejected, completed
+    client_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)  # 의뢰자 ID
 
 class Payment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -534,30 +536,118 @@ def api_send_message():
     }, room=str(receiver_id))
     return jsonify({'message': 'Message sent', 'id': msg.id})
 
+@app.route('/portfolio/accept/<int:portfolio_id>', methods=['POST'])
+@login_required
+def portfolio_accept(portfolio_id):
+    portfolio = Portfolio.query.get_or_404(portfolio_id)
+    if portfolio.status != 'pending':
+        flash('이미 처리된 포트폴리오입니다.', 'danger')
+        return redirect(url_for('portfolio_detail', portfolio_id=portfolio_id))
+    
+    portfolio.status = 'accepted'
+    portfolio.client_id = current_user.id
+    db.session.commit()
+    
+    # 프리랜서에게 알림 생성
+    notif = Notification(
+        user_id=portfolio.freelancer_id,
+        type='portfolio',
+        message=f'{current_user.nickname}님이 포트폴리오를 수락했습니다.',
+        is_read=False
+    )
+    db.session.add(notif)
+    db.session.commit()
+    
+    # 실시간 알림 전송
+    socketio.emit('send_notification', {
+        'type': 'portfolio',
+        'message': notif.message,
+        'timestamp': notif.timestamp.isoformat(),
+        'notif_id': notif.id
+    }, room=str(portfolio.freelancer_id))
+    
+    flash('포트폴리오가 수락되었습니다. 결제를 진행해 주세요.', 'success')
+    return redirect(url_for('pay_portfolio_detail', portfolio_id=portfolio_id))
+
+@app.route('/portfolio/reject/<int:portfolio_id>', methods=['POST'])
+@login_required
+def portfolio_reject(portfolio_id):
+    portfolio = Portfolio.query.get_or_404(portfolio_id)
+    if portfolio.status != 'pending':
+        flash('이미 처리된 포트폴리오입니다.', 'danger')
+        return redirect(url_for('portfolio_detail', portfolio_id=portfolio_id))
+    
+    portfolio.status = 'rejected'
+    portfolio.client_id = current_user.id
+    db.session.commit()
+    
+    # 프리랜서에게 알림 생성
+    notif = Notification(
+        user_id=portfolio.freelancer_id,
+        type='portfolio',
+        message=f'{current_user.nickname}님이 포트폴리오를 거절했습니다.',
+        is_read=False
+    )
+    db.session.add(notif)
+    db.session.commit()
+    
+    # 실시간 알림 전송
+    socketio.emit('send_notification', {
+        'type': 'portfolio',
+        'message': notif.message,
+        'timestamp': notif.timestamp.isoformat(),
+        'notif_id': notif.id
+    }, room=str(portfolio.freelancer_id))
+    
+    flash('포트폴리오가 거절되었습니다.', 'info')
+    return redirect(url_for('portfolio_detail', portfolio_id=portfolio_id))
+
 @app.route('/pay/portfolio/<int:portfolio_id>', methods=['GET', 'POST'])
 @login_required
 def pay_portfolio_detail(portfolio_id):
     portfolio = Portfolio.query.get_or_404(portfolio_id)
+    
+    # 수락된 포트폴리오만 결제 가능
+    if portfolio.status != 'accepted' or portfolio.client_id != current_user.id:
+        flash('결제할 수 없는 포트폴리오입니다.', 'danger')
+        return redirect(url_for('portfolio_detail', portfolio_id=portfolio_id))
+    
     amount = portfolio.price or 10000
     if request.method == 'POST':
         # 실제 결제 연동 대신 테스트용으로 바로 성공 처리
-        payment = Payment(user_id=current_user.id, amount=amount, description=f'포트폴리오 결제: {portfolio.id}')
+        payment = Payment(
+            user_id=current_user.id,
+            amount=amount,
+            description=f'포트폴리오 결제: {portfolio.id}'
+        )
         db.session.add(payment)
+        
+        # 포트폴리오 상태를 completed로 변경
+        portfolio.status = 'completed'
         db.session.commit()
+        
         # 결제 성공 시, 구매자와 프리랜서 간 메시지방(최초 메시지) 자동 생성
         freelancer_id = portfolio.freelancer_id
         buyer_id = current_user.id
+        
         # 이미 메시지 내역이 없으면 최초 메시지 생성
         existing = Message.query.filter(
             ((Message.sender_id == buyer_id) & (Message.receiver_id == freelancer_id)) |
             ((Message.sender_id == freelancer_id) & (Message.receiver_id == buyer_id))
         ).first()
+        
         if not existing:
-            msg = Message(sender_id=buyer_id, receiver_id=freelancer_id, content='포트폴리오 구매 후 자동 생성된 대화방입니다.')
+            msg = Message(
+                sender_id=buyer_id,
+                receiver_id=freelancer_id,
+                content='포트폴리오 구매 후 자동 생성된 대화방입니다.'
+            )
             db.session.add(msg)
             db.session.commit()
+        
         flash('포트폴리오 결제가 완료되었습니다! 프리랜서와 바로 대화할 수 있습니다.', 'success')
         return redirect(url_for('messages_detail', user_id=freelancer_id))
+    
     return render_template('pay_portfolio_detail.html', portfolio=portfolio, amount=amount)
 
 @app.route('/pay/portfolio/success/<int:portfolio_id>')
