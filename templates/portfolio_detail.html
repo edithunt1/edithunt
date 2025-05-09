@@ -1,139 +1,162 @@
 {% extends 'base.html' %}
-{% block title %}포트폴리오 상세 - Edithunt{% endblock %}
+{% block title %}{{ portfolio.title }} - EditHunt{% endblock %}
 {% block content %}
-<div class="container mt-5">
+<div class="container">
+    <!-- 헤더 섹션 -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">{{ portfolio.title }}</h2>
+            <p class="text-muted mb-0">{{ portfolio.category }}</p>
+        </div>
+        <div class="btn-group">
+            <a href="{{ url_for('portfolio_list') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>목록으로
+            </a>
+            {% if current_user.is_authenticated and current_user.id == portfolio.freelancer_id %}
+            <a href="{{ url_for('portfolio_edit', portfolio_id=portfolio.id) }}" class="btn btn-outline-primary">
+                <i class="fas fa-edit me-2"></i>수정
+            </a>
+            <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                <i class="fas fa-trash me-2"></i>삭제
+            </button>
+            {% endif %}
+        </div>
+    </div>
+
     <div class="row">
+        <!-- 포트폴리오 정보 -->
         <div class="col-lg-8">
             <div class="card shadow-sm mb-4">
+                <img src="{{ portfolio.thumbnail_url or url_for('static', filename='images/default_portfolio.jpg') }}" 
+                     class="card-img-top" alt="{{ portfolio.title }}" style="max-height: 400px; object-fit: cover;">
                 <div class="card-body">
-                    <div class="d-flex align-items-center mb-4">
-                        <img src="{{ url_for('static', filename='uploads/' + user.profile_image) }}" 
-                             class="rounded-circle me-3" 
-                             style="width: 60px; height: 60px; object-fit: cover;"
-                             alt="프리랜서 프로필">
+                    <div class="mb-4">
+                        <h5 class="text-muted mb-2">설명</h5>
+                        <p class="mb-0">{{ portfolio.description }}</p>
+                    </div>
+                    {% if portfolio.tags %}
+                    <div class="mb-4">
+                        <h5 class="text-muted mb-2">태그</h5>
                         <div>
-                            <h4 class="mb-1">{{ user.nickname }}</h4>
-                            <p class="text-muted mb-0">{{ user.email }}</p>
+                            {% for tag in portfolio.tags.split(',') %}
+                            <span class="badge bg-light text-dark me-2">{{ tag.strip() }}</span>
+                            {% endfor %}
                         </div>
                     </div>
-
-                    {% if portfolio.thumbnail %}
-                        <img src="{{ url_for('static', filename='uploads/' + portfolio.thumbnail) }}" 
-                             class="img-fluid rounded mb-4" 
-                             alt="포트폴리오 썸네일">
                     {% endif %}
-
-                    <h3 class="mb-3">{{ portfolio.content }}</h3>
-                    
-                    <div class="mb-4">
-                        <span class="badge bg-primary me-2">
-                            <i class="fas fa-tag me-1"></i>{{ portfolio.category }}
-                        </span>
-                        {% if portfolio.tags %}
-                            {% for tag in portfolio.tags.split(',') %}
-                                <span class="badge bg-light text-dark me-2">#{{ tag.strip() }}</span>
-                            {% endfor %}
-                        {% endif %}
-                    </div>
-
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h4 class="mb-0">{{ portfolio.price|format_number }}원</h4>
-                        {% if portfolio.id in payments %}
-                            <span class="badge bg-success">구매완료</span>
-                        {% else %}
-                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#purchaseModal">
-                                <i class="fas fa-shopping-cart me-1"></i>구매하기
-                            </button>
-                        {% endif %}
-                    </div>
-
-                    <div class="border-top pt-4">
-                        <h5 class="mb-3">작품 설명</h5>
-                        <p class="text-muted">{{ portfolio.description or '작품 설명이 없습니다.' }}</p>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5 class="text-muted mb-2">가격</h5>
+                            <p class="h3 mb-0">{{ portfolio.price|format_number }}원</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h5 class="text-muted mb-2">등록일</h5>
+                            <p class="mb-0">{{ portfolio.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                        </div>
                     </div>
                 </div>
             </div>
+
+            <!-- 추가 이미지 -->
+            {% if portfolio.images %}
+            <div class="card shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-images me-2 text-primary"></i>추가 이미지
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        {% for image in portfolio.images.split(',') %}
+                        <div class="col-md-6">
+                            <img src="{{ url_for('static', filename='uploads/' + image.strip()) }}" 
+                                 class="img-fluid rounded" alt="포트폴리오 이미지">
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
         </div>
 
+        <!-- 프리랜서 정보 -->
         <div class="col-lg-4">
             <div class="card shadow-sm mb-4">
-                <div class="card-body">
-                    <h5 class="card-title mb-4">
-                        <i class="fas fa-user me-2"></i>프리랜서 정보
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user me-2 text-primary"></i>프리랜서 정보
                     </h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <img src="{{ portfolio.freelancer.profile_image or url_for('static', filename='images/default_profile.png') }}" 
+                             class="rounded-circle mb-3" width="120" height="120" alt="프로필">
+                        <h4 class="mb-1">{{ portfolio.freelancer.nickname }}</h4>
+                        <p class="text-muted mb-3">{{ portfolio.freelancer.email }}</p>
+                        <div class="d-flex justify-content-center gap-2">
+                            <a href="{{ url_for('profile', user_id=portfolio.freelancer_id) }}" 
+                               class="btn btn-outline-primary">
+                                <i class="fas fa-user me-2"></i>프로필
+                            </a>
+                            <a href="{{ url_for('messages_create', recipient_id=portfolio.freelancer_id) }}" 
+                               class="btn btn-outline-secondary">
+                                <i class="fas fa-envelope me-2"></i>메시지
+                            </a>
+                        </div>
+                    </div>
+                    <hr>
                     <div class="mb-3">
-                        <small class="text-muted d-block mb-1">이메일</small>
-                        <p class="mb-0">{{ user.email }}</p>
+                        <h6 class="text-muted mb-2">전문 분야</h6>
+                        <p class="mb-0">{{ portfolio.freelancer.expertise or '등록된 정보가 없습니다.' }}</p>
                     </div>
                     <div class="mb-3">
-                        <small class="text-muted d-block mb-1">가입일</small>
-                        <p class="mb-0">{{ user.created_at.strftime('%Y년 %m월 %d일') }}</p>
+                        <h6 class="text-muted mb-2">경력</h6>
+                        <p class="mb-0">{{ portfolio.freelancer.experience or '등록된 정보가 없습니다.' }}</p>
                     </div>
-                    <div class="mb-3">
-                        <small class="text-muted d-block mb-1">포트폴리오 수</small>
-                        <p class="mb-0">{{ portfolio_count }}개</p>
-                    </div>
-                    <button class="btn btn-outline-primary w-100" onclick="location.href='{{ url_for('send_message', recipient_id=user.id) }}'">
-                        <i class="fas fa-envelope me-1"></i>메시지 보내기
-                    </button>
                 </div>
             </div>
 
+            <!-- 구매 버튼 -->
+            {% if current_user.is_authenticated and current_user.id != portfolio.freelancer_id %}
             <div class="card shadow-sm">
                 <div class="card-body">
-                    <h5 class="card-title mb-4">
-                        <i class="fas fa-star me-2"></i>다른 포트폴리오
-                    </h5>
-                    {% if other_portfolios %}
-                        {% for p in other_portfolios %}
-                            <div class="d-flex align-items-center mb-3">
-                                {% if p.thumbnail %}
-                                    <img src="{{ url_for('static', filename='uploads/' + p.thumbnail) }}" 
-                                         class="rounded me-3" 
-                                         style="width: 60px; height: 60px; object-fit: cover;"
-                                         alt="포트폴리오 썸네일">
-                                {% else %}
-                                    <div class="bg-light rounded me-3 d-flex align-items-center justify-content-center" 
-                                         style="width: 60px; height: 60px;">
-                                        <i class="fas fa-image text-muted"></i>
-                                    </div>
-                                {% endif %}
-                                <div>
-                                    <h6 class="mb-1">{{ p.content[:30] }}...</h6>
-                                    <p class="text-muted mb-0">{{ p.price|format_number }}원</p>
-                                </div>
-                            </div>
-                        {% endfor %}
-                    {% else %}
-                        <p class="text-muted text-center mb-0">다른 포트폴리오가 없습니다.</p>
-                    {% endif %}
+                    <h5 class="card-title mb-4">포트폴리오 구매</h5>
+                    <p class="text-muted mb-4">이 포트폴리오를 구매하시면 소스 코드와 자세한 설명을 받아보실 수 있습니다.</p>
+                    <form action="{{ url_for('pay_portfolio', portfolio_id=portfolio.id) }}" method="POST">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-shopping-cart me-2"></i>{{ portfolio.price|format_number }}원 구매하기
+                        </button>
+                    </form>
                 </div>
             </div>
+            {% endif %}
         </div>
     </div>
 </div>
 
-<!-- 구매 모달 -->
-<div class="modal fade" id="purchaseModal" tabindex="-1">
+<!-- 삭제 확인 모달 -->
+{% if current_user.is_authenticated and current_user.id == portfolio.freelancer_id %}
+<div class="modal fade" id="deleteModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">포트폴리오 구매</h5>
+                <h5 class="modal-title">포트폴리오 삭제</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p>이 포트폴리오를 구매하시겠습니까?</p>
-                <p class="mb-0">가격: {{ portfolio.price|format_number }}원</p>
+                <p>정말로 이 포트폴리오를 삭제하시겠습니까?</p>
+                <p class="text-danger mb-0">이 작업은 되돌릴 수 없습니다.</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
-                <form method="POST" action="{{ url_for('purchase_portfolio', portfolio_id=portfolio.id) }}">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-shopping-cart me-1"></i>구매하기
+                <form action="{{ url_for('portfolio_delete', portfolio_id=portfolio.id) }}" method="POST" class="d-inline">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-2"></i>삭제
                     </button>
                 </form>
             </div>
         </div>
     </div>
 </div>
+{% endif %}
 {% endblock %} 

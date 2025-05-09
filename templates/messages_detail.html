@@ -1,1 +1,181 @@
- 
+{% extends 'base.html' %}
+{% block title %}메시지 - EditHunt{% endblock %}
+{% block content %}
+<div class="container">
+    <!-- 헤더 섹션 -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">메시지</h2>
+            <p class="text-muted mb-0">{{ conversation.other_user.nickname }}님과의 대화</p>
+        </div>
+        <a href="{{ url_for('messages_list') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>목록으로
+        </a>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <!-- 상대방 정보 -->
+                <div class="card-header bg-white py-3">
+                    <div class="d-flex align-items-center">
+                        <img src="{{ conversation.other_user.profile_image or url_for('static', filename='images/default_profile.png') }}" 
+                             class="rounded-circle me-3" width="48" height="48" alt="프로필">
+                        <div class="flex-grow-1">
+                            <h5 class="mb-1">{{ conversation.other_user.nickname }}</h5>
+                            <small class="text-muted">
+                                {% if conversation.other_user.is_online %}
+                                <span class="text-success">
+                                    <i class="fas fa-circle me-1"></i>온라인
+                                </span>
+                                {% else %}
+                                마지막 접속: {{ conversation.other_user.last_seen.strftime('%Y-%m-%d %H:%M') }}
+                                {% endif %}
+                            </small>
+                        </div>
+                        <div class="dropdown">
+                            <button class="btn btn-link text-muted" type="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li>
+                                    <a class="dropdown-item" href="{{ url_for('user_profile', user_id=conversation.other_user.id) }}">
+                                        <i class="fas fa-user me-2"></i>프로필 보기
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                                        <i class="fas fa-trash-alt me-2"></i>대화 삭제
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 메시지 내용 -->
+                <div class="card-body" style="height: 500px; overflow-y: auto;" id="messageContainer">
+                    {% for message in conversation.messages %}
+                    <div class="d-flex {% if message.sender_id == current_user.id %}justify-content-end{% endif %} mb-3">
+                        <div class="message {% if message.sender_id == current_user.id %}message-sent{% else %}message-received{% endif %}">
+                            <div class="message-content">
+                                {{ message.content }}
+                            </div>
+                            <small class="text-{% if message.sender_id == current_user.id %}white-50{% else %}muted{% endif %}">
+                                {{ message.created_at.strftime('%H:%M') }}
+                                {% if message.sender_id == current_user.id %}
+                                {% if message.is_read %}
+                                <i class="fas fa-check-double ms-1"></i>
+                                {% else %}
+                                <i class="fas fa-check ms-1"></i>
+                                {% endif %}
+                                {% endif %}
+                            </small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- 메시지 입력 -->
+                <div class="card-footer bg-white py-3">
+                    <form method="POST" action="{{ url_for('messages_send', conversation_id=conversation.id) }}" 
+                          class="d-flex gap-2" id="messageForm">
+                        <input type="text" class="form-control" name="content" placeholder="메시지를 입력하세요..." required>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 삭제 확인 모달 -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">대화 삭제</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>이 대화를 삭제하시겠습니까?</p>
+                <p class="text-danger mb-0">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    이 작업은 되돌릴 수 없습니다.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                <form method="POST" action="{{ url_for('messages_delete', conversation_id=conversation.id) }}" class="d-inline">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash-alt me-2"></i>삭제
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.message {
+    max-width: 70%;
+    padding: 0.75rem 1rem;
+    border-radius: 1rem;
+    position: relative;
+}
+
+.message-sent {
+    background-color: #0d6efd;
+    color: white;
+    border-bottom-right-radius: 0.25rem;
+}
+
+.message-received {
+    background-color: #f8f9fa;
+    color: #212529;
+    border-bottom-left-radius: 0.25rem;
+}
+
+.message-content {
+    margin-bottom: 0.25rem;
+    word-break: break-word;
+}
+
+#messageContainer::-webkit-scrollbar {
+    width: 6px;
+}
+
+#messageContainer::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+#messageContainer::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 3px;
+}
+
+#messageContainer::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const messageContainer = document.getElementById('messageContainer');
+    if (messageContainer) {
+        messageContainer.scrollTop = messageContainer.scrollHeight;
+    }
+
+    const messageForm = document.getElementById('messageForm');
+    if (messageForm) {
+        messageForm.addEventListener('submit', function() {
+            setTimeout(() => {
+                messageContainer.scrollTop = messageContainer.scrollHeight;
+            }, 100);
+        });
+    }
+});
+</script>
+{% endblock %} 

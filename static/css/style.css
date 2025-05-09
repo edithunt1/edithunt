@@ -12,12 +12,17 @@
   --main-shadow: 0 8px 32px #e3eafc;
   --main-shadow-hover: rgba(33,150,243,0.18);
   --main-card-radius: 18px;
+  --primary-color: #4A90E2;
+  --secondary-color: #50E3C2;
+  --background-color: #F8F9FA;
+  --text-primary: #333333;
+  --text-secondary: #666666;
 }
 
 body {
     font-family: 'Inter', 'Noto Sans KR', Arial, sans-serif;
     background: var(--main-bg);
-    color: #1a237e;
+    color: var(--text-primary);
     margin: 0;
     padding: 0;
     min-height: 100vh;
@@ -295,60 +300,19 @@ input, select, textarea, button {
 
 /* Hero Section */
 .hero-section {
-    background: linear-gradient(120deg, #00b894 0%, #00cec9 100%);
-    color: #fff;
-    border-radius: 24px;
-    padding: 3.5rem 2rem 2.5rem 2rem;
-    margin-bottom: 2.5rem;
-    text-align: left;
-    box-shadow: 0 8px 32px rgba(0,200,150,0.10);
-    position: relative;
-    animation: fadeIn 1s cubic-bezier(.23,1.01,.32,1) both;
-}
-.hero-section h2 {
-    font-size: 2.5rem;
-    font-weight: 800;
-    line-height: 1.2;
-    margin-bottom: 1.2rem;
-}
-.hero-section .highlight {
-    color: #ffeaa7;
-    background: rgba(0,0,0,0.08);
-    border-radius: 8px;
-    padding: 0 0.5em;
-}
-.hero-desc {
-    font-size: 1.2rem;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    color: white;
+    padding: 5rem 0;
+    margin-top: -1.5rem;
     margin-bottom: 2rem;
-    color: #eafaf1;
 }
-.cta-btn {
-    display: inline-block;
-    background: #fff;
-    color: #00b894;
+.hero-section h1 {
     font-weight: 700;
-    border-radius: 12px;
-    padding: 0.9rem 2.2rem;
+    margin-bottom: 1.5rem;
+}
+.hero-section .btn {
+    padding: 0.75rem 2rem;
     font-size: 1.1rem;
-    box-shadow: 0 2px 8px rgba(0,200,150,0.10);
-    border: none;
-    text-decoration: none;
-    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
-    margin-top: 0.5rem;
-}
-.cta-btn:hover {
-    background: #00cec9;
-    color: #fff;
-    box-shadow: 0 4px 16px rgba(0,200,150,0.18);
-}
-.cta-btn-outline {
-    background: #fff;
-    color: #0984e3;
-    border: 2px solid #0984e3;
-}
-.cta-btn-outline:hover {
-    background: #0984e3;
-    color: #fff;
 }
 
 /* Main Cards Section */
@@ -858,4 +822,132 @@ footer {
   border-radius: 0 0 32px 32px;
   font-size: 1.08rem;
   margin-top: 48px;
+}
+
+/* Navbar Styles */
+.navbar {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.navbar-brand {
+    font-weight: 700;
+    color: var(--primary-color) !important;
+}
+
+.nav-link {
+    color: var(--text-primary) !important;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.nav-link:hover {
+    color: var(--primary-color) !important;
+}
+
+/* Card Styles */
+.card {
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.card-img-top {
+    height: 200px;
+    object-fit: cover;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+}
+
+/* Button Styles */
+.btn {
+    border-radius: 5px;
+    padding: 0.5rem 1.5rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-primary:hover {
+    background-color: #357abd;
+    border-color: #357abd;
+    transform: translateY(-1px);
+}
+
+.btn-outline-primary {
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+/* Form Styles */
+.form-control {
+    border-radius: 5px;
+    border: 1px solid #dee2e6;
+    padding: 0.75rem 1rem;
+}
+
+.form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(74, 144, 226, 0.25);
+}
+
+/* Portfolio Cards */
+.portfolio-card {
+    margin-bottom: 2rem;
+}
+
+.portfolio-card .card-title {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.portfolio-card .card-text {
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+}
+
+/* Profile Section */
+.profile-image {
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 50%;
+    margin-bottom: 1.5rem;
+}
+
+/* Footer */
+.footer {
+    background-color: white;
+    padding: 2rem 0;
+    margin-top: 3rem;
+    box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .hero-section {
+        padding: 3rem 0;
+    }
+    
+    .hero-section h1 {
+        font-size: 2rem;
+    }
+    
+    .card-img-top {
+        height: 150px;
+    }
 } 

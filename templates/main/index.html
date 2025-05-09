@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Edithunt - 프리랜서 에디터를 위한 플랫폼{% endblock %}
+
+{% block content %}
+<section class="hero-section text-center py-5">
+    <h1 class="display-4 mb-4">프리랜서 에디터를 위한 최고의 플랫폼</h1>
+    <p class="lead mb-4">당신의 재능을 보여주고 새로운 기회를 만나보세요</p>
+    <div class="d-flex justify-content-center gap-3">
+        <a href="{{ url_for('portfolio.create') }}" class="btn btn-primary btn-lg">포트폴리오 작성하기</a>
+        <a href="{{ url_for('main.search') }}" class="btn btn-outline-primary btn-lg">포트폴리오 둘러보기</a>
+    </div>
+</section>
+
+<section class="featured-portfolios py-5">
+    <h2 class="text-center mb-4">인기 포트폴리오</h2>
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        {% for portfolio in featured_portfolios %}
+        <div class="col">
+            <div class="card h-100">
+                <img src="{{ portfolio.image_url }}" class="card-img-top" alt="{{ portfolio.title }}">
+                <div class="card-body">
+                    <h5 class="card-title">{{ portfolio.title }}</h5>
+                    <p class="card-text">{{ portfolio.description[:100] }}...</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">{{ portfolio.author.username }}</small>
+                        <div>
+                            <span class="badge bg-primary me-2">{{ portfolio.views }} 조회</span>
+                            <span class="badge bg-secondary">{{ portfolio.likes }} 좋아요</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a href="{{ url_for('portfolio.view', id=portfolio.id) }}" class="btn btn-outline-primary w-100">자세히 보기</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="recent-portfolios py-5 bg-light">
+    <h2 class="text-center mb-4">최신 포트폴리오</h2>
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        {% for portfolio in recent_portfolios %}
+        <div class="col">
+            <div class="card h-100">
+                <img src="{{ portfolio.image_url }}" class="card-img-top" alt="{{ portfolio.title }}">
+                <div class="card-body">
+                    <h5 class="card-title">{{ portfolio.title }}</h5>
+                    <p class="card-text">{{ portfolio.description[:100] }}...</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">{{ portfolio.author.username }}</small>
+                        <small class="text-muted">{{ portfolio.created_at.strftime('%Y-%m-%d') }}</small>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a href="{{ url_for('portfolio.view', id=portfolio.id) }}" class="btn btn-outline-primary w-100">자세히 보기</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="top-creators py-5">
+    <h2 class="text-center mb-4">인기 크리에이터</h2>
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
+        {% for creator in top_creators %}
+        <div class="col">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <img src="{{ creator.profile_image or url_for('static', filename='images/default-profile.png') }}" 
+                         class="rounded-circle mb-3" alt="{{ creator.username }}" style="width: 100px; height: 100px; object-fit: cover;">
+                    <h5 class="card-title">{{ creator.username }}</h5>
+                    <p class="card-text">{{ creator.bio[:100] if creator.bio else '프리랜서 에디터' }}</p>
+                    <a href="{{ url_for('profile.view', username=creator.username) }}" class="btn btn-outline-primary">프로필 보기</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %} 

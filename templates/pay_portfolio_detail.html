@@ -1,17 +1,77 @@
 {% extends 'base.html' %}
 {% block title %}포트폴리오 결제 - EditHunt{% endblock %}
 {% block content %}
-<div style="max-width:500px;margin:60px auto 0 auto;">
-    <div style="padding:40px 36px 32px 36px;background:#fff;border-radius:24px;box-shadow:0 8px 32px #e3eafc;border:1.5px solid #e3f0fc;">
-        <h2 style="text-align:center;font-size:2rem;font-weight:900;margin-bottom:18px;color:#1976d2;letter-spacing:-1px;">포트폴리오 결제</h2>
-        <div style="text-align:center;color:#6a7ba2;font-size:1.13rem;margin-bottom:24px;">포트폴리오를 구매하려면 결제가 필요합니다.</div>
-        <div style="background:#f8fbff;padding:18px 16px;border-radius:14px;margin-bottom:24px;">
-            <div style="font-size:1.08rem;color:#1976d2;font-weight:700;">포트폴리오 번호: {{ portfolio.id }}</div>
-            <div style="font-size:1.08rem;color:#1976d2;font-weight:700;">가격: {{ amount|format_number }}원</div>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <h2 class="text-center mb-4">포트폴리오 결제</h2>
+                    
+                    <!-- 포트폴리오 정보 -->
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title mb-3">포트폴리오 정보</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p class="mb-2"><strong>포트폴리오 번호:</strong></p>
+                                    <p class="text-muted">{{ portfolio.id }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p class="mb-2"><strong>작성자:</strong></p>
+                                    <p class="text-muted">{{ portfolio.freelancer.nickname }}</p>
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-12">
+                                    <p class="mb-2"><strong>제목:</strong></p>
+                                    <p class="text-muted">{{ portfolio.content }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 결제 정보 -->
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title mb-3">결제 정보</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p class="mb-2"><strong>결제 금액:</strong></p>
+                                    <h4 class="text-primary">{{ amount|format_number }}원</h4>
+                                </div>
+                                <div class="col-md-6">
+                                    <p class="mb-2"><strong>결제 방법:</strong></p>
+                                    <select class="form-select" name="payment_method" required>
+                                        <option value="">결제 방법 선택</option>
+                                        <option value="card">신용카드</option>
+                                        <option value="bank">계좌이체</option>
+                                        <option value="virtual">가상계좌</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 결제 안내 -->
+                    <div class="alert alert-info mb-4">
+                        <h6 class="alert-heading mb-2"><i class="fas fa-info-circle me-2"></i>결제 안내</h6>
+                        <ul class="mb-0 ps-3">
+                            <li>결제 완료 후 프리랜서와 바로 대화할 수 있습니다.</li>
+                            <li>결제 취소는 구매 후 7일 이내에만 가능합니다.</li>
+                            <li>문의사항은 고객센터로 연락해 주세요.</li>
+                        </ul>
+                    </div>
+
+                    <!-- 결제 버튼 -->
+                    <form method="post" class="text-center">
+                        <button type="submit" class="btn btn-primary btn-lg px-5">
+                            <i class="fas fa-credit-card me-2"></i>결제하기
+                        </button>
+                    </form>
+                </div>
+            </div>
         </div>
-        <form method="post">
-            <button type="submit" class="cta-btn" style="width:100%;background:linear-gradient(90deg,#1976d2 0%,#42a5f5 100%);color:#fff;font-size:1.18rem;padding:16px 0;border-radius:14px;font-weight:900;box-shadow:0 4px 16px #e3eafc;letter-spacing:0.5px;">결제하기</button>
-        </form>
     </div>
 </div>
 {% endblock %} 

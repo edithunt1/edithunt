@@ -1,12 +1,62 @@
 {% extends 'base.html' %}
 {% block title %}결제 실패 - EditHunt{% endblock %}
 {% block content %}
-<div style="max-width:420px;margin:80px auto 0 auto;">
-    <div style="padding:48px 36px 36px 36px;background:#fff;border-radius:28px;box-shadow:0 8px 32px #e3eafc;border:1.5px solid #e3f0fc;text-align:center;">
-        <div style="font-size:3.5rem;line-height:1;margin-bottom:18px;">😢</div>
-        <h2 style="font-size:2rem;font-weight:900;color:#d32f2f;margin-bottom:16px;letter-spacing:-1px;">결제에 실패했습니다</h2>
-        <div style="color:#6a7ba2;font-size:1.13rem;margin-bottom:32px;">일시적인 오류로 결제가 처리되지 않았습니다.<br>잠시 후 다시 시도해 주세요.</div>
-        <a href="{{ url_for('portfolio_detail', portfolio_id=portfolio.id) }}" class="cta-btn" style="display:inline-block;width:100%;background:linear-gradient(90deg,#1976d2 0%,#42a5f5 100%);color:#fff;font-size:1.18rem;padding:16px 0;border-radius:14px;font-weight:900;box-shadow:0 4px 16px #e3eafc;letter-spacing:0.5px;text-decoration:none;">포트폴리오로 이동</a>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body p-4 text-center">
+                    <div class="mb-4">
+                        <i class="fas fa-times-circle text-danger" style="font-size: 4rem;"></i>
+                    </div>
+                    <h2 class="mb-4">결제에 실패했습니다</h2>
+                    
+                    <!-- 오류 정보 -->
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title mb-3">오류 정보</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p class="mb-2"><strong>포트폴리오 번호:</strong></p>
+                                    <p class="text-muted">{{ portfolio.id }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p class="mb-2"><strong>결제 금액:</strong></p>
+                                    <p class="text-muted">{{ portfolio.price|format_number }}원</p>
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-12">
+                                    <p class="mb-2"><strong>오류 메시지:</strong></p>
+                                    <p class="text-danger">{{ message or '결제 처리 중 오류가 발생했습니다.' }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 문제 해결 안내 -->
+                    <div class="alert alert-warning mb-4">
+                        <h6 class="alert-heading mb-2"><i class="fas fa-exclamation-triangle me-2"></i>문제 해결 안내</h6>
+                        <ul class="mb-0 ps-3">
+                            <li>카드 잔액이 충분한지 확인해 주세요.</li>
+                            <li>카드 정보가 올바르게 입력되었는지 확인해 주세요.</li>
+                            <li>다른 결제 수단을 시도해 보세요.</li>
+                            <li>문제가 지속되면 고객센터로 문의해 주세요.</li>
+                        </ul>
+                    </div>
+
+                    <!-- 버튼 그룹 -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                        <a href="{{ url_for('pay_portfolio_detail', portfolio_id=portfolio.id) }}" class="btn btn-primary btn-lg px-4 me-md-2">
+                            <i class="fas fa-redo me-2"></i>다시 시도
+                        </a>
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary btn-lg px-4">
+                            <i class="fas fa-home me-2"></i>대시보드로
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %} 

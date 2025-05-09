@@ -8,17 +8,35 @@ from flask_socketio import SocketIO, emit
 import requests
 import base64
 from edithunt.models import db
+from flask_mail import Mail
 
 login_manager = LoginManager()
+mail = Mail()
+socketio = SocketIO()
 
 def create_app():
     app = Flask(__name__)
-    app.config['SECRET_KEY'] = 'your_secret'
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///edithunt.db'  # 또는 mysql+pymysql://user:pw@host/db
+    
+    # 기본 설정
+    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev')
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///edithunt.db')
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    
+    # 이메일 설정
+    app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+    app.config['MAIL_PORT'] = 587
+    app.config['MAIL_USE_TLS'] = True
+    app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
+    app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
+    
+    # 확장 초기화
     db.init_app(app)
     login_manager.init_app(app)
-    socketio = SocketIO(app)
-
+    mail.init_app(app)
+    socketio.init_app(app)
+    
+    login_manager.login_view = 'auth.login'
+    
     UPLOAD_FOLDER = 'static/uploads'
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'pdf', 'mp4', 'mov'}
     app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER

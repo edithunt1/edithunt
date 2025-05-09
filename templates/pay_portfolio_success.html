@@ -1,12 +1,61 @@
 {% extends 'base.html' %}
-{% block title %}결제 완료 - EditHunt{% endblock %}
+{% block title %}결제 성공 - EditHunt{% endblock %}
 {% block content %}
-<div style="max-width:420px;margin:80px auto 0 auto;">
-    <div style="padding:48px 36px 36px 36px;background:#fff;border-radius:28px;box-shadow:0 8px 32px #e3eafc;border:1.5px solid #e3f0fc;text-align:center;">
-        <div style="font-size:3.5rem;line-height:1;margin-bottom:18px;">🎉</div>
-        <h2 style="font-size:2rem;font-weight:900;color:#1976d2;margin-bottom:16px;letter-spacing:-1px;">결제가 완료되었습니다!</h2>
-        <div style="color:#6a7ba2;font-size:1.13rem;margin-bottom:32px;">포트폴리오 구매가 완료되었습니다.<br>이용해주셔서 감사합니다.</div>
-        <a href="{{ url_for('portfolio_detail', portfolio_id=portfolio.id) }}" class="cta-btn" style="display:inline-block;width:100%;background:linear-gradient(90deg,#1976d2 0%,#42a5f5 100%);color:#fff;font-size:1.18rem;padding:16px 0;border-radius:14px;font-weight:900;box-shadow:0 4px 16px #e3eafc;letter-spacing:0.5px;text-decoration:none;">포트폴리오로 이동</a>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body p-4 text-center">
+                    <div class="mb-4">
+                        <i class="fas fa-check-circle text-success" style="font-size: 4rem;"></i>
+                    </div>
+                    <h2 class="mb-4">결제가 완료되었습니다!</h2>
+                    
+                    <!-- 결제 정보 -->
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title mb-3">결제 정보</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p class="mb-2"><strong>포트폴리오 번호:</strong></p>
+                                    <p class="text-muted">{{ portfolio.id }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p class="mb-2"><strong>결제 금액:</strong></p>
+                                    <p class="text-muted">{{ portfolio.price|format_number }}원</p>
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-12">
+                                    <p class="mb-2"><strong>결제 일시:</strong></p>
+                                    <p class="text-muted">{{ now().strftime('%Y년 %m월 %d일 %H:%M:%S') }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 다음 단계 안내 -->
+                    <div class="alert alert-success mb-4">
+                        <h6 class="alert-heading mb-2"><i class="fas fa-lightbulb me-2"></i>다음 단계</h6>
+                        <ul class="mb-0 ps-3">
+                            <li>프리랜서와 바로 대화를 시작할 수 있습니다.</li>
+                            <li>포트폴리오 파일을 다운로드할 수 있습니다.</li>
+                            <li>작업 진행 상황을 실시간으로 확인할 수 있습니다.</li>
+                        </ul>
+                    </div>
+
+                    <!-- 버튼 그룹 -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                        <a href="{{ url_for('messages_detail', user_id=portfolio.freelancer_id) }}" class="btn btn-primary btn-lg px-4 me-md-2">
+                            <i class="fas fa-comments me-2"></i>대화하기
+                        </a>
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary btn-lg px-4">
+                            <i class="fas fa-home me-2"></i>대시보드로
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %} 

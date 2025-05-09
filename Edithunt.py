@@ -4,7 +4,7 @@ from flask_login import LoginManager, login_user, logout_user, login_required, c
 from sqlalchemy import or_, inspect
 import os
 from werkzeug.utils import secure_filename
-from flask_socketio import SocketIO, emit, join_room
+from flask_socketio import SocketIO, emit, join_room, leave_room
 import requests
 import base64
 import secrets
@@ -15,6 +15,7 @@ from sqlalchemy import text
 import time
 from wtforms import StringField, PasswordField
 from wtforms.validators import DataRequired, Email
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret'
@@ -83,6 +84,8 @@ class Payment(db.Model):
     amount = db.Column(db.Integer)
     timestamp = db.Column(db.DateTime, server_default=db.func.now())
     description = db.Column(db.String(200))
+    payment_method = db.Column(db.String(20))
+    payment_status = db.Column(db.String(20))
 
 class Notification(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -98,6 +101,21 @@ class FAQ(db.Model):
     answer = db.Column(db.Text, nullable=False)
     order = db.Column(db.Integer, default=0)
     is_active = db.Column(db.Boolean, default=True)
+
+class Project(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text)
+    client_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    freelancer_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    status = db.Column(db.String(20), default='pending')  # pending, active, completed, cancelled
+    price = db.Column(db.Integer)
+    created_at = db.Column(db.DateTime, server_default=db.func.now())
+    updated_at = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now())
+
+    # 관계 설정
+    client = db.relationship('User', foreign_keys=[client_id], backref='client_projects')
+    freelancer = db.relationship('User', foreign_keys=[freelancer_id], backref='freelancer_projects')
 
 class LoginForm(FlaskForm):
     email = StringField('이메일', validators=[DataRequired(), Email()])
@@ -287,7 +305,6 @@ def admin():
     portfolios = Portfolio.query.all()
     payments = Payment.query.all()
     # 통계 데이터 계산
-    from datetime import datetime, timedelta
     total_users = len(users)
     total_portfolios = len(portfolios)
     total_payments = len(payments)
@@ -317,6 +334,9 @@ def profile():
 @login_required
 def pay(project_id):
     project = Project.query.get_or_404(project_id)
+    if project.client_id != current_user.id:
+        flash('본인의 프로젝트만 결제할 수 있습니다.', 'danger')
+        return redirect(url_for('dashboard'))
     return render_template('pay.html', project=project, client_key='테스트_클라이언트키')
 
 @app.route('/pay/confirm', methods=['POST'])
@@ -612,55 +632,99 @@ def pay_portfolio_detail(portfolio_id):
         flash('결제할 수 없는 포트폴리오입니다.', 'danger')
         return redirect(url_for('portfolio_detail', portfolio_id=portfolio_id))
     
-    amount = portfolio.price or 10000
     if request.method == 'POST':
-        # 실제 결제 연동 대신 테스트용으로 바로 성공 처리
-        payment = Payment(
-            user_id=current_user.id,
-            amount=amount,
-            description=f'포트폴리오 결제: {portfolio.id}'
-        )
-        db.session.add(payment)
+        payment_method = request.form.get('payment_method')
+        if not payment_method:
+            flash('결제 방법을 선택해 주세요.', 'danger')
+            return redirect(url_for('pay_portfolio_detail', portfolio_id=portfolio_id))
         
-        # 포트폴리오 상태를 completed로 변경
-        portfolio.status = 'completed'
-        db.session.commit()
-        
-        # 결제 성공 시, 구매자와 프리랜서 간 메시지방(최초 메시지) 자동 생성
-        freelancer_id = portfolio.freelancer_id
-        buyer_id = current_user.id
-        
-        # 이미 메시지 내역이 없으면 최초 메시지 생성
-        existing = Message.query.filter(
-            ((Message.sender_id == buyer_id) & (Message.receiver_id == freelancer_id)) |
-            ((Message.sender_id == freelancer_id) & (Message.receiver_id == buyer_id))
-        ).first()
-        
-        if not existing:
-            msg = Message(
-                sender_id=buyer_id,
-                receiver_id=freelancer_id,
-                content='포트폴리오 구매 후 자동 생성된 대화방입니다.'
+        try:
+            # 결제 처리 (실제 결제 연동 대신 테스트용으로 바로 성공 처리)
+            payment = Payment(
+                user_id=current_user.id,
+                amount=int(portfolio.price),
+                description=f'포트폴리오 결제: {portfolio.id}',
+                payment_method=payment_method,
+                payment_status='completed'
             )
-            db.session.add(msg)
+            db.session.add(payment)
+            
+            # 포트폴리오 상태를 completed로 변경
+            portfolio.status = 'completed'
             db.session.commit()
-        
-        flash('포트폴리오 결제가 완료되었습니다! 프리랜서와 바로 대화할 수 있습니다.', 'success')
-        return redirect(url_for('messages_detail', user_id=freelancer_id))
+            
+            # 결제 성공 시, 구매자와 프리랜서 간 메시지방(최초 메시지) 자동 생성
+            freelancer_id = portfolio.freelancer_id
+            buyer_id = current_user.id
+            
+            # 이미 메시지 내역이 없으면 최초 메시지 생성
+            existing = Message.query.filter(
+                ((Message.sender_id == buyer_id) & (Message.receiver_id == freelancer_id)) |
+                ((Message.sender_id == freelancer_id) & (Message.receiver_id == buyer_id))
+            ).first()
+            
+            if not existing:
+                msg = Message(
+                    sender_id=buyer_id,
+                    receiver_id=freelancer_id,
+                    content='포트폴리오 구매 후 자동 생성된 대화방입니다.'
+                )
+                db.session.add(msg)
+                db.session.commit()
+            
+            # 프리랜서에게 알림 생성
+            notif = Notification(
+                user_id=freelancer_id,
+                type='payment',
+                message=f'{current_user.nickname}님이 포트폴리오를 구매했습니다.',
+                is_read=False
+            )
+            db.session.add(notif)
+            db.session.commit()
+            
+            # 실시간 알림 전송
+            socketio.emit('send_notification', {
+                'type': 'payment',
+                'message': notif.message,
+                'timestamp': notif.timestamp.isoformat(),
+                'notif_id': notif.id
+            }, room=str(freelancer_id))
+            
+            return redirect(url_for('pay_portfolio_success', portfolio_id=portfolio_id))
+            
+        except Exception as e:
+            db.session.rollback()
+            flash(f'결제 처리 중 오류가 발생했습니다: {str(e)}', 'danger')
+            return redirect(url_for('pay_portfolio_fail', portfolio_id=portfolio_id, message=str(e)))
     
-    return render_template('pay_portfolio_detail.html', portfolio=portfolio, amount=amount)
+    return render_template('pay_portfolio_detail.html', portfolio=portfolio, amount=portfolio.price)
 
 @app.route('/pay/portfolio/success/<int:portfolio_id>')
 @login_required
 def pay_portfolio_success(portfolio_id):
     portfolio = Portfolio.query.get_or_404(portfolio_id)
-    return render_template('pay_portfolio_success.html', portfolio=portfolio)
+    payment = Payment.query.filter_by(
+        user_id=current_user.id,
+        description=f'포트폴리오 결제: {portfolio.id}'
+    ).order_by(Payment.timestamp.desc()).first()
+    
+    if not payment:
+        flash('결제 정보를 찾을 수 없습니다.', 'danger')
+        return redirect(url_for('dashboard'))
+    
+    return render_template('pay_portfolio_success.html', 
+                         portfolio=portfolio, 
+                         payment=payment,
+                         now=datetime.utcnow)
 
 @app.route('/pay/portfolio/fail/<int:portfolio_id>')
 @login_required
 def pay_portfolio_fail(portfolio_id):
     portfolio = Portfolio.query.get_or_404(portfolio_id)
-    return render_template('pay_portfolio_fail.html', portfolio=portfolio)
+    message = request.args.get('message', '결제 처리 중 오류가 발생했습니다.')
+    return render_template('pay_portfolio_fail.html', 
+                         portfolio=portfolio, 
+                         message=message)
 
 @app.template_filter('format_number')
 def format_number(value):
@@ -728,7 +792,6 @@ def robots_txt():
 
 @app.route('/sitemap.xml')
 def sitemap_xml():
-    from datetime import datetime
     pages = [
         url_for('index', _external=True),
         url_for('portfolio_list', _external=True),
@@ -799,37 +862,264 @@ def pay_portfolio():
 @app.route('/pay/portfolio/complete', methods=['POST'])
 @login_required
 def pay_portfolio_complete():
-    # 나이스페이먼츠 결제 완료 처리
+    # 결제 완료 처리
     result_code = request.form.get('ResultCode')
     result_msg = request.form.get('ResultMsg')
     order_id = request.form.get('Moid')
     amount = request.form.get('Amt')
+    portfolio_id = request.form.get('portfolio_id')
     
     if result_code == '0000':  # 결제 성공
-        # 결제 내역 저장
-        payment = Payment(
-            user_id=current_user.id,
-            amount=int(amount),
-            description='포트폴리오 등록비',
-            payment_id=order_id
-        )
-        db.session.add(payment)
-        
-        # 포트폴리오 등록 처리
-        portfolio_content = session.pop('portfolio_content', None)
-        if portfolio_content:
-            portfolio = Portfolio(
-                content=portfolio_content,
-                freelancer_id=current_user.id
+        try:
+            # 결제 내역 저장
+            payment = Payment(
+                user_id=current_user.id,
+                amount=int(amount),
+                description=f'포트폴리오 결제: {portfolio_id}',
+                payment_method=request.form.get('PayMethod'),
+                payment_status='completed'
             )
-            db.session.add(portfolio)
+            db.session.add(payment)
+            
+            # 포트폴리오 상태 업데이트
+            portfolio = Portfolio.query.get_or_404(portfolio_id)
+            portfolio.status = 'completed'
             db.session.commit()
             
-            flash('포트폴리오가 성공적으로 등록되었습니다!', 'success')
-            return redirect(url_for('dashboard'))
+            # 프리랜서에게 알림 생성
+            notif = Notification(
+                user_id=portfolio.freelancer_id,
+                type='payment',
+                message=f'{current_user.nickname}님이 포트폴리오를 구매했습니다.',
+                is_read=False
+            )
+            db.session.add(notif)
+            db.session.commit()
+            
+            # 실시간 알림 전송
+            socketio.emit('send_notification', {
+                'type': 'payment',
+                'message': notif.message,
+                'timestamp': notif.timestamp.isoformat(),
+                'notif_id': notif.id
+            }, room=str(portfolio.freelancer_id))
+            
+            # 구매자와 프리랜서 간 메시지방 자동 생성
+            existing = Message.query.filter(
+                ((Message.sender_id == current_user.id) & (Message.receiver_id == portfolio.freelancer_id)) |
+                ((Message.sender_id == portfolio.freelancer_id) & (Message.receiver_id == current_user.id))
+            ).first()
+            
+            if not existing:
+                msg = Message(
+                    sender_id=current_user.id,
+                    receiver_id=portfolio.freelancer_id,
+                    content='포트폴리오 구매 후 자동 생성된 대화방입니다.'
+                )
+                db.session.add(msg)
+                db.session.commit()
+            
+            flash('결제가 성공적으로 완료되었습니다!', 'success')
+            return redirect(url_for('pay_portfolio_success', portfolio_id=portfolio_id))
+            
+        except Exception as e:
+            db.session.rollback()
+            flash(f'결제 처리 중 오류가 발생했습니다: {str(e)}', 'danger')
+            return redirect(url_for('pay_portfolio_fail', portfolio_id=portfolio_id, message=str(e)))
     else:
         flash(f'결제 실패: {result_msg}', 'danger')
-        return redirect(url_for('portfolio_register'))
+        return redirect(url_for('pay_portfolio_fail', portfolio_id=portfolio_id, message=result_msg))
+
+@socketio.on('connect')
+def handle_connect():
+    if current_user.is_authenticated:
+        join_room(str(current_user.id))
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    if current_user.is_authenticated:
+        leave_room(str(current_user.id))
+
+@app.route('/notifications')
+@login_required
+def notifications():
+    notifications = Notification.query.filter_by(
+        user_id=current_user.id
+    ).order_by(Notification.timestamp.desc()).all()
+    return render_template('notifications.html', notifications=notifications)
+
+@app.route('/notifications/mark_all_read', methods=['POST'])
+@login_required
+def mark_all_notifications_read():
+    Notification.query.filter_by(
+        user_id=current_user.id,
+        is_read=False
+    ).update({'is_read': True})
+    db.session.commit()
+    return jsonify({'success': True})
+
+@app.route('/project/create', methods=['GET', 'POST'])
+@login_required
+def project_create():
+    if request.method == 'POST':
+        title = request.form.get('title')
+        description = request.form.get('description')
+        price = request.form.get('price')
+        
+        if not all([title, description, price]):
+            flash('모든 필드를 입력해주세요.', 'error')
+            return redirect(url_for('project_create'))
+        
+        try:
+            project = Project(
+                title=title,
+                description=description,
+                price=int(price),
+                client_id=current_user.id,
+                status='pending'
+            )
+            db.session.add(project)
+            db.session.commit()
+            
+            flash('프로젝트가 생성되었습니다.', 'success')
+            return redirect(url_for('project_detail', project_id=project.id))
+        except Exception as e:
+            db.session.rollback()
+            flash('프로젝트 생성 중 오류가 발생했습니다.', 'error')
+            return redirect(url_for('project_create'))
+    
+    return render_template('project_create.html')
+
+@app.route('/project/<int:project_id>')
+@login_required
+def project_detail(project_id):
+    project = Project.query.get_or_404(project_id)
+    if project.client_id != current_user.id and project.freelancer_id != current_user.id:
+        flash('접근 권한이 없습니다.', 'error')
+        return redirect(url_for('project_list'))
+    return render_template('project_detail.html', project=project)
+
+@app.route('/project/edit/<int:project_id>', methods=['GET', 'POST'])
+@login_required
+def project_edit(project_id):
+    project = Project.query.get_or_404(project_id)
+    if project.client_id != current_user.id:
+        flash('수정 권한이 없습니다.', 'error')
+        return redirect(url_for('project_detail', project_id=project.id))
+    
+    if project.status != 'pending':
+        flash('대기중인 프로젝트만 수정할 수 있습니다.', 'error')
+        return redirect(url_for('project_detail', project_id=project.id))
+
+    if request.method == 'POST':
+        title = request.form.get('title')
+        description = request.form.get('description')
+        price = request.form.get('price')
+
+        if not all([title, description, price]):
+            flash('모든 필드를 입력해주세요.', 'error')
+            return redirect(url_for('project_edit', project_id=project.id))
+
+        try:
+            project.title = title
+            project.description = description
+            project.price = int(price)
+            db.session.commit()
+            flash('프로젝트가 수정되었습니다.', 'success')
+            return redirect(url_for('project_detail', project_id=project.id))
+        except Exception as e:
+            db.session.rollback()
+            flash('프로젝트 수정 중 오류가 발생했습니다.', 'error')
+            return redirect(url_for('project_edit', project_id=project.id))
+
+    return render_template('project_edit.html', project=project)
+
+@app.route('/project/delete/<int:project_id>', methods=['POST'])
+@login_required
+def project_delete(project_id):
+    project = Project.query.get_or_404(project_id)
+    if project.client_id != current_user.id:
+        flash('삭제 권한이 없습니다.', 'error')
+        return redirect(url_for('project_detail', project_id=project.id))
+    
+    if project.status != 'pending':
+        flash('대기중인 프로젝트만 삭제할 수 있습니다.', 'error')
+        return redirect(url_for('project_detail', project_id=project.id))
+
+    try:
+        db.session.delete(project)
+        db.session.commit()
+        flash('프로젝트가 삭제되었습니다.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash('프로젝트 삭제 중 오류가 발생했습니다.', 'error')
+    
+    return redirect(url_for('project_list'))
+
+@app.route('/project/status/<int:project_id>', methods=['POST'])
+@login_required
+def project_status_update(project_id):
+    project = Project.query.get_or_404(project_id)
+    if project.client_id != current_user.id and project.freelancer_id != current_user.id:
+        flash('상태 변경 권한이 없습니다.', 'error')
+        return redirect(url_for('project_detail', project_id=project.id))
+
+    new_status = request.form.get('status')
+    if new_status not in ['pending', 'active', 'completed', 'cancelled']:
+        flash('잘못된 상태값입니다.', 'error')
+        return redirect(url_for('project_detail', project_id=project.id))
+
+    try:
+        old_status = project.status
+        project.status = new_status
+        db.session.commit()
+
+        # 상태 변경 알림 생성
+        if project.client_id == current_user.id:
+            notify_user(project.freelancer_id, f'프로젝트 "{project.title}"의 상태가 {old_status}에서 {new_status}로 변경되었습니다.')
+        else:
+            notify_user(project.client_id, f'프로젝트 "{project.title}"의 상태가 {old_status}에서 {new_status}로 변경되었습니다.')
+
+        flash('프로젝트 상태가 변경되었습니다.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash('상태 변경 중 오류가 발생했습니다.', 'error')
+
+    return redirect(url_for('project_detail', project_id=project.id))
+
+@app.route('/projects')
+@login_required
+def project_list():
+    client_projects = Project.query.filter_by(client_id=current_user.id).order_by(Project.created_at.desc()).all()
+    freelancer_projects = Project.query.filter_by(freelancer_id=current_user.id).order_by(Project.created_at.desc()).all()
+    return render_template('project_list.html', client_projects=client_projects, freelancer_projects=freelancer_projects)
+
+def notify_user(user_id, content, type='general', link=None):
+    """
+    사용자에게 알림을 보내는 함수
+    
+    Args:
+        user_id (int): 알림을 받을 사용자의 ID
+        content (str): 알림 내용
+        type (str): 알림 유형 ('message', 'project', 'portfolio', 'general')
+        link (str, optional): 알림 클릭 시 이동할 링크
+    """
+    try:
+        notification = Notification(
+            user_id=user_id,
+            content=content,
+            type=type,
+            link=link,
+            is_read=False,
+            created_at=datetime.utcnow()
+        )
+        db.session.add(notification)
+        db.session.commit()
+        return True
+    except Exception as e:
+        db.session.rollback()
+        print(f"알림 전송 실패: {str(e)}")
+        return False
 
 if __name__ == '__main__':
     with app.app_context():

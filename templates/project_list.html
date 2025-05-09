@@ -1,20 +1,161 @@
 {% extends 'base.html' %}
 {% block title %}프로젝트 목록 - EditHunt{% endblock %}
 {% block content %}
-<h2 style="text-align:center;margin-bottom:32px;"><img src="{{ url_for('static', filename='img/edithunt_logo.png') }}" alt="Logo" style="height:48px;"></h2>
-<div class="main-cards">
-    {% for project in projects %}
-    <div class="main-card project-card">
-        <div class="card-title">{{ project.title }}</div>
-        <div class="card-desc">{{ project.description[:60] }}{% if project.description|length > 60 %}...{% endif %}</div>
-        <div class="card-info">
-            <span>등록자 <b>{{ project.client_id }}</b></span>
+<div class="container">
+    <!-- 헤더 섹션 -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">프로젝트 목록</h2>
+            <p class="text-muted mb-0">의뢰하거나 참여한 프로젝트를 관리하세요</p>
         </div>
-        <div class="card-actions">
-            <a href="{{ url_for('project_detail', project_id=project.id) }}" class="card-btn">상세보기</a>
-            <a href="{{ url_for('apply_project', project_id=project.id) }}" class="card-btn cta-btn-outline">지원하기</a>
+        <a href="{{ url_for('project_create') }}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>새 프로젝트
+        </a>
+    </div>
+
+    <!-- 의뢰한 프로젝트 -->
+    {% if client_projects %}
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white py-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-user-tie me-2 text-primary"></i>의뢰한 프로젝트
+                </h5>
+                <span class="badge bg-primary">{{ client_projects|length }}개</span>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th class="border-0">제목</th>
+                            <th class="border-0">상태</th>
+                            <th class="border-0">금액</th>
+                            <th class="border-0">생성일</th>
+                            <th class="border-0">작업</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for project in client_projects %}
+                        <tr>
+                            <td>
+                                <a href="{{ url_for('project_detail', project_id=project.id) }}" class="text-decoration-none text-dark">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-project-diagram me-2 text-primary"></i>
+                                        {{ project.title }}
+                                    </div>
+                                </a>
+                            </td>
+                            <td>
+                                <span class="status-badge {% if project.status == 'pending' %}status-pending
+                                                         {% elif project.status == 'active' %}status-active
+                                                         {% elif project.status == 'completed' %}status-completed
+                                                         {% else %}status-cancelled{% endif %}">
+                                    {% if project.status == 'pending' %}대기중
+                                    {% elif project.status == 'active' %}진행중
+                                    {% elif project.status == 'completed' %}완료
+                                    {% else %}취소됨{% endif %}
+                                </span>
+                            </td>
+                            <td>{{ project.price|format_number }}원</td>
+                            <td>{{ project.created_at.strftime('%Y-%m-%d') }}</td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{{ url_for('project_detail', project_id=project.id) }}" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye me-1"></i>상세
+                                    </a>
+                                    {% if project.status == 'pending' %}
+                                    <a href="{{ url_for('project_edit', project_id=project.id) }}" 
+                                       class="btn btn-sm btn-outline-secondary">
+                                        <i class="fas fa-edit me-1"></i>수정
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
-    {% endfor %}
+    {% endif %}
+
+    <!-- 참여한 프로젝트 -->
+    {% if freelancer_projects %}
+    <div class="card shadow-sm">
+        <div class="card-header bg-white py-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-user-check me-2 text-success"></i>참여한 프로젝트
+                </h5>
+                <span class="badge bg-success">{{ freelancer_projects|length }}개</span>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th class="border-0">제목</th>
+                            <th class="border-0">상태</th>
+                            <th class="border-0">금액</th>
+                            <th class="border-0">시작일</th>
+                            <th class="border-0">작업</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for project in freelancer_projects %}
+                        <tr>
+                            <td>
+                                <a href="{{ url_for('project_detail', project_id=project.id) }}" class="text-decoration-none text-dark">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-project-diagram me-2 text-success"></i>
+                                        {{ project.title }}
+                                    </div>
+                                </a>
+                            </td>
+                            <td>
+                                <span class="status-badge {% if project.status == 'pending' %}status-pending
+                                                         {% elif project.status == 'active' %}status-active
+                                                         {% elif project.status == 'completed' %}status-completed
+                                                         {% else %}status-cancelled{% endif %}">
+                                    {% if project.status == 'pending' %}대기중
+                                    {% elif project.status == 'active' %}진행중
+                                    {% elif project.status == 'completed' %}완료
+                                    {% else %}취소됨{% endif %}
+                                </span>
+                            </td>
+                            <td>{{ project.price|format_number }}원</td>
+                            <td>{{ project.created_at.strftime('%Y-%m-%d') }}</td>
+                            <td>
+                                <a href="{{ url_for('project_detail', project_id=project.id) }}" 
+                                   class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye me-1"></i>상세
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if not client_projects and not freelancer_projects %}
+    <div class="text-center py-5">
+        <div class="mb-4">
+            <i class="fas fa-project-diagram fa-4x text-muted"></i>
+        </div>
+        <h4 class="text-muted mb-3">등록된 프로젝트가 없습니다</h4>
+        <p class="text-muted mb-4">새 프로젝트를 생성하여 시작해보세요!</p>
+        <a href="{{ url_for('project_create') }}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>새 프로젝트
+        </a>
+    </div>
+    {% endif %}
 </div>
 {% endblock %} 

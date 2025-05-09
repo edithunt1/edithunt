@@ -1,17 +1,155 @@
 {% extends 'base.html' %}
-{% block title %}프로젝트 상세 - EditHunt{% endblock %}
+{% block title %}{{ project.title }} - EditHunt{% endblock %}
 {% block content %}
-<h2 style="text-align:center;margin-bottom:32px;"><img src="{{ url_for('static', filename='img/edithunt_logo.png') }}" alt="Logo" style="height:48px;"></h2>
-<div class="main-card project-card">
-    <div class="card-title">{{ project.title }}</div>
-    <div class="card-desc">{{ project.description }}</div>
-    <div class="card-info">
-        <span>등록자 <b>{{ project.client_id }}</b></span>
-        {% if project.status %}<span>상태 <b>{{ project.status }}</b></span>{% endif %}
+<div class="container">
+    <!-- 헤더 섹션 -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">{{ project.title }}</h2>
+            <p class="text-muted mb-0">프로젝트 상세 정보</p>
+        </div>
+        <div class="btn-group">
+            <a href="{{ url_for('project_list') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>목록으로
+            </a>
+            {% if current_user.id == project.client_id and project.status == 'pending' %}
+            <a href="{{ url_for('project_edit', project_id=project.id) }}" class="btn btn-outline-primary">
+                <i class="fas fa-edit me-2"></i>수정
+            </a>
+            <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                <i class="fas fa-trash me-2"></i>삭제
+            </button>
+            {% endif %}
+        </div>
     </div>
-    <div class="card-actions">
-        <a href="{{ url_for('apply_project', project_id=project.id) }}" class="card-btn">지원하기</a>
-        <a href="{{ url_for('select_applicant', project_id=project.id) }}" class="card-btn cta-btn-outline">지원자 보기</a>
+
+    <div class="row">
+        <!-- 프로젝트 정보 -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2 text-primary"></i>프로젝트 정보
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-2">상태</h6>
+                        <span class="status-badge {% if project.status == 'pending' %}status-pending
+                                                {% elif project.status == 'active' %}status-active
+                                                {% elif project.status == 'completed' %}status-completed
+                                                {% else %}status-cancelled{% endif %}">
+                            {% if project.status == 'pending' %}대기중
+                            {% elif project.status == 'active' %}진행중
+                            {% elif project.status == 'completed' %}완료
+                            {% else %}취소됨{% endif %}
+                        </span>
+                    </div>
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-2">설명</h6>
+                        <p class="mb-0">{{ project.description }}</p>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-2">금액</h6>
+                            <p class="h4 mb-0">{{ project.price|format_number }}원</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-2">생성일</h6>
+                            <p class="mb-0">{{ project.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 상태 변경 폼 -->
+            {% if current_user.id in [project.client_id, project.freelancer_id] %}
+            <div class="card shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-exchange-alt me-2 text-primary"></i>상태 변경
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form action="{{ url_for('project_status_update', project_id=project.id) }}" method="POST">
+                        <div class="mb-3">
+                            <label for="status" class="form-label">새로운 상태</label>
+                            <select class="form-select" id="status" name="status" required>
+                                <option value="pending" {% if project.status == 'pending' %}selected{% endif %}>대기중</option>
+                                <option value="active" {% if project.status == 'active' %}selected{% endif %}>진행중</option>
+                                <option value="completed" {% if project.status == 'completed' %}selected{% endif %}>완료</option>
+                                <option value="cancelled" {% if project.status == 'cancelled' %}selected{% endif %}>취소됨</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>상태 변경
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- 참여자 정보 -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-users me-2 text-primary"></i>참여자 정보
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-2">의뢰자</h6>
+                        <div class="d-flex align-items-center">
+                            <img src="{{ project.client.profile_image or url_for('static', filename='images/default_profile.png') }}" 
+                                 class="rounded-circle me-2" width="40" height="40" alt="프로필">
+                            <div>
+                                <p class="mb-0 fw-bold">{{ project.client.nickname }}</p>
+                                <small class="text-muted">{{ project.client.email }}</small>
+                            </div>
+                        </div>
+                    </div>
+                    {% if project.freelancer %}
+                    <div>
+                        <h6 class="text-muted mb-2">프리랜서</h6>
+                        <div class="d-flex align-items-center">
+                            <img src="{{ project.freelancer.profile_image or url_for('static', filename='images/default_profile.png') }}" 
+                                 class="rounded-circle me-2" width="40" height="40" alt="프로필">
+                            <div>
+                                <p class="mb-0 fw-bold">{{ project.freelancer.nickname }}</p>
+                                <small class="text-muted">{{ project.freelancer.email }}</small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 삭제 확인 모달 -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">프로젝트 삭제</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>정말로 이 프로젝트를 삭제하시겠습니까?</p>
+                <p class="text-danger mb-0">이 작업은 되돌릴 수 없습니다.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                <form action="{{ url_for('project_delete', project_id=project.id) }}" method="POST" class="d-inline">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-2"></i>삭제
+                    </button>
+                </form>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %} 
